@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
+            $table->string('name'); // Nome da cliente
+            $table->string('whatsapp')->nullable(); // Contato
+            $table->date('birth_date')->nullable(); // Para mandar promoções no aniversário
             $table->timestamps();
         });
     }
