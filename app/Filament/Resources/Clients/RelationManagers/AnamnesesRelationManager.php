@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
-use Filament\Actions\CreateAction;
-use Filament\Actions\Action; 
-
+use App\Filament\Resources\Anamneses\AnamnesisResource;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
 
 class AnamnesesRelationManager extends RelationManager
 {
