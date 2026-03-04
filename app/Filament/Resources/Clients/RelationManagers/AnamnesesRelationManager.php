@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action; 
+
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-// AQUI ESTÁ A CORREÇÃO DA ROTA:
-use Filament\Actions\Action; 
 
 class AnamnesesRelationManager extends RelationManager
 {
@@ -17,7 +18,14 @@ class AnamnesesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return $schema->components([
+            \Filament\Forms\Components\TextInput::make('preferred_style')
+                ->label('Estilo Realizado')
+                ->required(),
+            \Filament\Forms\Components\Textarea::make('observations')
+                ->label('Observações')
+                ->required(),
+        ]);
     }
 
     public function table(Table $table): Table
@@ -37,6 +45,9 @@ class AnamnesesRelationManager extends RelationManager
                 TextColumn::make('observations')
                     ->label('Observações')
                     ->limit(50),
+            ])
+            ->headerActions([
+                CreateAction::make()->label('Nova Ficha'),
             ])
             ->recordActions([
                 Action::make('ver_ficha')

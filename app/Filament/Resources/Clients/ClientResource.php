@@ -57,6 +57,7 @@ class ClientResource extends Resource
         // O Intelephense vai sublinhar isso aqui até rodarmos o Passo 2. Pode ignorar por enquanto!
         return [
             RelationManagers\AnamnesesRelationManager::class,
+            RelationManagers\AppointmentsRelationManager::class,
         ];
     }
 
