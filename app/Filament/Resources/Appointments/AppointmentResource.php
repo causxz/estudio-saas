@@ -1,69 +1,161 @@
 <?php
 
-namespace App\Filament\Resources\Clients\RelationManagers;
+namespace App\Filament\Resources\Appointments;
 
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
-
-use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\Appointments\Pages;
+use App\Models\Appointment;
+use App\Models\Service;
+use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Carbon\Carbon;
+
+// Componentes do Formulário
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+
+// Componentes da Tabela
 use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\EditAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 
-class AppointmentsRelationManager extends RelationManager
+class AppointmentResource extends Resource
 {
-    protected static string $relationship = 'appointments';
+    protected static ?string $model = Appointment::class;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
+    protected static ?string $modelLabel = 'Agendamento';
+    protected static ?string $pluralModelLabel = 'Agendamentos';
 
-    protected static ?string $title = 'Histórico de Agendamentos';
-
-    public function form(Schema $schema): Schema
+    public static function form(Schema $schema): Schema
     {
-        return $schema->components([
-            \Filament\Forms\Components\Select::make('service_id')
-                ->relationship('service', 'name')
-                ->required()
-                ->label('Serviço'),
-            \Filament\Forms\Components\DateTimePicker::make('starts_at')
-                ->required()
-                ->seconds(false)
-                ->displayFormat('d/m/Y H:i')
-                ->label('Início'),
-            \Filament\Forms\Components\DateTimePicker::make('ends_at')
-                ->required()
-                ->seconds(false)
-                ->displayFormat('d/m/Y H:i')
-                ->label('Fim'),
-        ]);
+        return $schema
+            ->components([
+                Section::make('Detalhes do Agendamento')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('client_id')
+                            ->relationship('client', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->label('Cliente'),
+
+                        Select::make('service_id')
+                            ->relationship('service', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->label('Serviço')
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                $startsAt = $get('starts_at');
+                                if ($state && $startsAt) {
+                                    $service = Service::find($state);
+                                    if ($service) {
+                                        // CÁLCULO COM BUFFER
+                                        $totalMinutes = $service->duration_minutes + ($service->buffer_after ?? 0);
+                                        $set('ends_at', Carbon::parse($startsAt)->addMinutes($totalMinutes)->toDateTimeString());
+                                    }
+                                }
+                            }),
+
+                        DateTimePicker::make('starts_at')
+                            ->required()
+                            ->label('Início')
+                            ->seconds(false)
+                            ->displayFormat('d/m/Y H:i')
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                $serviceId = $get('service_id');
+                                if ($state && $serviceId) {
+                                    $service = Service::find($serviceId);
+                                    if ($service) {
+                                        // CÁLCULO COM BUFFER
+                                        $totalMinutes = $service->duration_minutes + ($service->buffer_after ?? 0);
+                                        $set('ends_at', Carbon::parse($state)->addMinutes($totalMinutes)->toDateTimeString());
+                                    }
+                                }
+                            }),
+
+                        DateTimePicker::make('ends_at')
+                            ->required()
+                            ->label('Término (Com Buffer)')
+                            ->seconds(false)
+                            ->displayFormat('d/m/Y H:i')
+                            ->helperText('O horário final já inclui o tempo de limpeza/buffer.')
+                            ->rules([
+                                function (Get $get) {
+                                    return function (string $attribute, $value, $fail) use ($get) {
+                                        $startsAt = $get('starts_at');
+                                        $endsAt = $value;
+                                        $appointmentId = $get('id');
+
+                                        $exists = Appointment::where(function ($query) use ($startsAt, $endsAt) {
+                                            $query->whereBetween('starts_at', [$startsAt, $endsAt])
+                                                ->orWhereBetween('ends_at', [$startsAt, $endsAt])
+                                                ->orWhere(function ($q) use ($startsAt, $endsAt) {
+                                                    $q->where('starts_at', '<=', $startsAt)
+                                                        ->where('ends_at', '>=', $endsAt);
+                                                });
+                                        })  
+                                            ->where('status', '!=', 'cancelado')
+                                            ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId))
+                                            ->exists();
+
+                                        if ($exists) {
+                                            $fail('Este horário (incluindo a margem de limpeza) já está ocupado.');
+                                        }
+                                    };
+                                },
+                            ]),
+
+                        Select::make('status')
+                            ->options([
+                                'agendado' => 'Agendado',
+                                'confirmado' => 'Confirmado',
+                                'concluido' => 'Concluído',
+                                'cancelado' => 'Cancelado',
+                            ])
+                            ->default('agendado')
+                            ->required(),
+
+                        Textarea::make('notes')
+                            ->label('Observações')
+                            ->columnSpanFull(),
+                    ])
+            ]);
     }
 
-    public function table(Table $table): Table
+    public static function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('starts_at')
             ->columns([
-                TextColumn::make('starts_at')
-                    ->label('Data/Hora')
-                    ->date('d/m/Y H:i')
-                    ->sortable(),
-                TextColumn::make('service.name')
-                    ->label('Serviço'),
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'agendado' => 'warning',
-                        'confirmado' => 'success',
-                        'concluido' => 'info',
-                        'cancelado' => 'danger',
-                        default => 'primary',
-                    })
-                    ->label('Status'),
+                TextColumn::make('client.name')->label('Cliente')->searchable(),
+                TextColumn::make('service.name')->label('Serviço'),
+                TextColumn::make('starts_at')->label('Início')->dateTime('d/m/Y H:i')->sortable(),
+                TextColumn::make('status')->badge()->color(fn($state) => match($state){
+                    'agendado' => 'warning',
+                    'confirmado' => 'success',
+                    'concluido' => 'info',
+                    'cancelado' => 'danger',
+                    default => 'gray'
+                }),
             ])
-            ->headerActions([
-                CreateAction::make()->label('Novo Agendamento'),
-            ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([]);
+            ->recordActions([EditAction::make()])
+            ->defaultSort('starts_at', 'asc');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListAppointments::route('/'),
+            'create' => Pages\CreateAppointment::route('/create'),
+            'edit' => Pages\EditAppointment::route('/{record}/edit'),
+        ];
     }
 }
