@@ -22,8 +22,8 @@ use Filament\Schemas\Components\Utilities\Set;
 // Componentes da Tabela
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
+// use Filament\Tables\Actions\BulkActionGroup;
+// use Filament\Tables\Actions\DeleteBulkAction;
 
 class AppointmentResource extends Resource
 {

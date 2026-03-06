@@ -25,4 +25,10 @@ class Appointment extends Model
     {
         return $this->belongsTo(Service::class);
     }
+
+    // Um agendamento pode ter uma transação financeira (O pagamento dele)
+    public function transaction()
+    {
+        return $this->hasOne(Transaction::class);
+    }
 }
