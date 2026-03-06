@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Appointments;
 
+use Filament\Support\Icons\Heroicon;
 use App\Filament\Resources\Appointments\Pages;
 use App\Models\Appointment;
 use App\Models\Service;
@@ -27,9 +28,10 @@ use Filament\Tables\Actions\DeleteBulkAction;
 class AppointmentResource extends Resource
 {
     protected static ?string $model = Appointment::class;
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
     protected static ?string $modelLabel = 'Agendamento';
     protected static ?string $pluralModelLabel = 'Agendamentos';
+    protected static ?string $navigationLabel = 'Agendamentos';
 
     public static function form(Schema $schema): Schema
     {
@@ -102,7 +104,7 @@ class AppointmentResource extends Resource
                                                     $q->where('starts_at', '<=', $startsAt)
                                                         ->where('ends_at', '>=', $endsAt);
                                                 });
-                                        })  
+                                        })
                                             ->where('status', '!=', 'cancelado')
                                             ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId))
                                             ->exists();
@@ -138,7 +140,7 @@ class AppointmentResource extends Resource
                 TextColumn::make('client.name')->label('Cliente')->searchable(),
                 TextColumn::make('service.name')->label('Serviço'),
                 TextColumn::make('starts_at')->label('Início')->dateTime('d/m/Y H:i')->sortable(),
-                TextColumn::make('status')->badge()->color(fn($state) => match($state){
+                TextColumn::make('status')->badge()->color(fn($state) => match ($state) {
                     'agendado' => 'warning',
                     'confirmado' => 'success',
                     'concluido' => 'info',

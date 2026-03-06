@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Anamneses;
 
+use Filament\Support\Icons\Heroicon;
 use App\Filament\Resources\Anamneses\Pages\CreateAnamnesis;
 use App\Filament\Resources\Anamneses\Pages\EditAnamnesis;
 use App\Filament\Resources\Anamneses\Pages\ListAnamneses;
@@ -29,8 +30,11 @@ use BackedEnum;
 class AnamnesisResource extends Resource
 {
     protected static ?string $model = Anamnesis::class;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+    protected static ?string $navigationLabel = 'Anamneses';
+    protected static ?string $modelLabel = 'Anamnese';
+    protected static ?string $pluralModelLabel = 'Anamneses';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
 
     public static function form(Schema $schema): Schema
     {
