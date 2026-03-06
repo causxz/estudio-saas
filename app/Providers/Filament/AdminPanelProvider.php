@@ -25,6 +25,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->tenant(\App\Models\Studio::class)
             ->id('admin')
             ->path('admin')
             ->login()

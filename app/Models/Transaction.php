@@ -26,4 +26,10 @@ class Transaction extends Model
     {
         return $this->belongsTo(Appointment::class);
     }
+
+    // Relação SaaS: Este registro pertence a um Estúdio
+    public function studio(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Studio::class);
+    }
 }

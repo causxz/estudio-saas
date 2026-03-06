@@ -18,4 +18,10 @@ class Anamnesis extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+    // Relação SaaS: Este registro pertence a um Estúdio
+    public function studio(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Studio::class);
+    }
 }

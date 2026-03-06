@@ -34,6 +34,7 @@ class AnamnesisResource extends Resource
     protected static ?string $navigationLabel = 'Anamneses';
     protected static ?string $modelLabel = 'Anamnese';
     protected static ?string $pluralModelLabel = 'Anamneses';
+    protected static ?string $tenantRelationshipName = 'anamneses';
 
 
     public static function form(Schema $schema): Schema
