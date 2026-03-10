@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
+
 // Layouts e Campos
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -24,6 +25,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Filament\Actions\Action;
 
 use BackedEnum;
 
@@ -82,7 +86,6 @@ class AnamnesisResource extends Resource
                             ->acceptedFileTypes(['application/pdf', 'image/*'])
                             ->downloadable()
                             ->openable()
-                            // A MÁGICA DO NOME DO ARQUIVO COMEÇA AQUI:
                             ->getUploadedFileNameForStorageUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file, \Filament\Schemas\Components\Utilities\Get $get): string {
                                 
                                 $clientId = $get('client_id');
@@ -118,6 +121,14 @@ class AnamnesisResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
+                
+                // NOVO BOTÃO: Abrir Ficha Preenchida na Tela
+                Action::make('imprimir')
+                    ->label('Ficha')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->url(fn (Anamnesis $record) => route('anamnese.imprimir', $record->id))
+                    ->openUrlInNewTab(), // Abre numa aba nova para não fechar o sistema
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

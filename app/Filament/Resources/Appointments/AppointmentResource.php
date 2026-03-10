@@ -11,6 +11,12 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Carbon\Carbon;
 
+// Componentes para Filtros
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Filters\Indicator;
+
 // Componentes do Formulário
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -22,8 +28,6 @@ use Filament\Schemas\Components\Utilities\Set;
 // Componentes da Tabela
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
-// use Filament\Tables\Actions\BulkActionGroup;
-// use Filament\Tables\Actions\DeleteBulkAction;
 
 class AppointmentResource extends Resource
 {
@@ -59,7 +63,6 @@ class AppointmentResource extends Resource
                                 if ($state && $startsAt) {
                                     $service = Service::find($state);
                                     if ($service) {
-                                        // CÁLCULO COM BUFFER
                                         $totalMinutes = $service->duration_minutes + ($service->buffer_after ?? 0);
                                         $set('ends_at', Carbon::parse($startsAt)->addMinutes($totalMinutes)->toDateTimeString());
                                     }
@@ -77,7 +80,6 @@ class AppointmentResource extends Resource
                                 if ($state && $serviceId) {
                                     $service = Service::find($serviceId);
                                     if ($service) {
-                                        // CÁLCULO COM BUFFER
                                         $totalMinutes = $service->duration_minutes + ($service->buffer_after ?? 0);
                                         $set('ends_at', Carbon::parse($state)->addMinutes($totalMinutes)->toDateTimeString());
                                     }
@@ -147,6 +149,43 @@ class AppointmentResource extends Resource
                     'cancelado' => 'danger',
                     default => 'gray'
                 }),
+            ])
+            ->filters([
+
+                Filter::make('hoje')
+                    ->label('Agendamentos de Hoje')
+                    ->toggle() // Transforma o filtro em uma chave liga/desliga
+                    ->query(fn (Builder $query): Builder => $query->whereDate('starts_at', Carbon::today()))
+                    ->indicator('Hoje'),
+
+                    Filter::make('data_agendamento')
+                    ->form([
+                        DatePicker::make('agendado_de')->label('Agendado de:'),
+                        DatePicker::make('agendado_ate')->label('Agendado até:'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['agendado_de'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('starts_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['agendado_ate'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('starts_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['agendado_de'] ?? null) {
+                            $indicators[] = Indicator::make('A partir de ' . Carbon::parse($data['agendado_de'])->format('d/m/Y'))
+                                ->removeField('agendado_de');
+                        }
+                        if ($data['agendado_ate'] ?? null) {
+                            $indicators[] = Indicator::make('Até ' . Carbon::parse($data['agendado_ate'])->format('d/m/Y'))
+                                ->removeField('agendado_ate');
+                        }
+                        return $indicators;
+                    })
             ])
             ->recordActions([EditAction::make()])
             ->defaultSort('starts_at', 'asc');

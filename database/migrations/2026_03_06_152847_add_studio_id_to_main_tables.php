@@ -7,21 +7,32 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {        
-        
-        Schema::table('clients', fn (Blueprint $table) => $table->foreignId('studio_id')->default(1)->constrained()->cascadeOnDelete());
-        Schema::table('services', fn (Blueprint $table) => $table->foreignId('studio_id')->default(1)->constrained()->cascadeOnDelete());
-        Schema::table('appointments', fn (Blueprint $table) => $table->foreignId('studio_id')->default(1)->constrained()->cascadeOnDelete());
-        Schema::table('transactions', fn (Blueprint $table) => $table->foreignId('studio_id')->default(1)->constrained()->cascadeOnDelete());
-        Schema::table('anamneses', fn (Blueprint $table) => $table->foreignId('studio_id')->default(1)->constrained()->cascadeOnDelete());
+    {
+        // Colocamos o nome exato 'anamnesis' no final da lista
+        $tabelas = ['clients', 'services', 'appointments', 'transactions', 'anamnesis'];
+
+        foreach ($tabelas as $tabela) {
+            // Só executa se a tabela existir e a coluna NÃO existir
+            if (Schema::hasTable($tabela) && !Schema::hasColumn($tabela, 'studio_id')) {
+                Schema::table($tabela, function (Blueprint $table) {
+                    // Usamos constrained('studios') explicitamente para evitar erros de plural do Laravel
+                    $table->foreignId('studio_id')->default(1)->constrained('studios')->cascadeOnDelete();
+                });
+            }
+        }
     }
 
     public function down(): void
     {
-        Schema::table('clients', fn (Blueprint $table) => $table->dropForeign(['studio_id'])->dropColumn('studio_id'));
-        Schema::table('services', fn (Blueprint $table) => $table->dropForeign(['studio_id'])->dropColumn('studio_id'));
-        Schema::table('appointments', fn (Blueprint $table) => $table->dropForeign(['studio_id'])->dropColumn('studio_id'));
-        Schema::table('transactions', fn (Blueprint $table) => $table->dropForeign(['studio_id'])->dropColumn('studio_id'));
-        Schema::table('anamneses', fn (Blueprint $table) => $table->dropForeign(['studio_id'])->dropColumn('studio_id'));
+        $tabelas = ['clients', 'services', 'appointments', 'transactions', 'anamnesis'];
+
+        foreach ($tabelas as $tabela) {
+            if (Schema::hasTable($tabela) && Schema::hasColumn($tabela, 'studio_id')) {
+                Schema::table($tabela, function (Blueprint $table) {
+                    $table->dropForeign(['studio_id']);
+                    $table->dropColumn('studio_id');
+                });
+            }
+        }
     }
 };
