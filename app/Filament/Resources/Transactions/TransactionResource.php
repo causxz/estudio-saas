@@ -205,7 +205,7 @@ class TransactionResource extends Resource
                         'saida' => 'Apenas Saídas',
                     ]),
 
-                //NOVO FILTRO DE DATA
+                //FILTRO DE DATA
                 Filter::make('periodo')
                     ->form([
                         Select::make('period')

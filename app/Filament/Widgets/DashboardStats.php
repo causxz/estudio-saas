@@ -6,7 +6,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\Appointment;
 use App\Models\Client;
-use App\Models\Transaction; // Ajustado para o nome real do seu model
+use App\Models\Transaction;
 use Carbon\Carbon;
 
 class DashboardStats extends BaseWidget
@@ -54,4 +54,6 @@ class DashboardStats extends BaseWidget
                 ->chart([150, 200, 100, 400, 300, 500, (float) $faturamentoMes]), // Gráfico de linha verde
         ];
     }
+
+    
 }

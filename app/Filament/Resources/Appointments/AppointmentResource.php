@@ -11,13 +11,11 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Carbon\Carbon;
 
-// Componentes para Filtros
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\Indicator;
 
-// Componentes do Formulário
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DateTimePicker;
@@ -25,7 +23,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 
-// Componentes da Tabela
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 

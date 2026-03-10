@@ -31,7 +31,7 @@ class AgendamentosHojeWidget extends BaseWidget
             ->columns([
                 Tables\Columns\TextColumn::make('starts_at')
                     ->label('Horário')
-                    ->dateTime('H:i') // Mostra apenas a hora (Ex: 14:30)
+                    ->dateTime('H:i')
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('client.name')
                     ->label('Cliente')

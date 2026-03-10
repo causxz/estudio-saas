@@ -17,16 +17,16 @@ use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Textarea; // <-- Adicionado para as observações
-use Filament\Forms\Components\TextInput; // <-- Adicionado para estilo e mapping
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 
 // Tabela e Ações
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
+// use Barryvdh\DomPDF\Facade\Pdf;
+// use Illuminate\Support\Facades\Storage;
 use Filament\Actions\Action;
 
 use BackedEnum;
@@ -64,7 +64,6 @@ class AnamnesisResource extends Resource
                         Toggle::make('sleeps_on_stomach')->label('Dorme de Bruços?'),
                     ]),
 
-                // NOVA SESSÃO ADICIONADA AQUI:
                 Section::make('Procedimento Realizado')
                     ->columns(2)
                     ->schema([
@@ -74,7 +73,7 @@ class AnamnesisResource extends Resource
                             ->label('Mapping (Ex: 8, 9, 10, 11)'),
                         Textarea::make('observations')
                             ->label('Observações Adicionais')
-                            ->columnSpanFull(), // Faz o campo ocupar a linha inteira
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Ficha Física / Digitalização')

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Clients\RelationManagers;
 
-use App\Filament\Resources\Anamneses\AnamnesisResource;
+// use App\Filament\Resources\Anamneses\AnamnesisResource;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
