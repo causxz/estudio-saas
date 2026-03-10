@@ -6,10 +6,8 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\Appointment;
 use App\Models\Client;
+use App\Models\Transaction; // Ajustado para o nome real do seu model
 use Carbon\Carbon;
-
-// 1. IMPORTANTE: Se o seu model de financeiro tiver outro nome (ex: Transaction, Receita, Pagamento), mude aqui!
-use App\Models\Transaction as Financial; 
 
 class DashboardStats extends BaseWidget
 {
@@ -21,15 +19,14 @@ class DashboardStats extends BaseWidget
         $clientesMes = Client::whereMonth('created_at', Carbon::now()->month)->count();
         $concluidos = Appointment::where('status', 'concluido')->count();
 
-        // 2. CÁLCULO DO FATURAMENTO DO MÊS
+        // CÁLCULO DO FATURAMENTO DO MÊS
         $faturamentoMes = 0;
         
-        // Verifica se o Model existe para não quebrar a tela caso o nome esteja diferente
-        if (class_exists(Financial::class)) {
-            $faturamentoMes = Financial::whereMonth('created_at', Carbon::now()->month)
-                // Se você tiver uma coluna indicando que é entrada/receita, descomente a linha abaixo e ajuste:
-                // ->where('tipo', 'entrada') 
-                ->sum('valor'); // IMPORTANTE: Mude 'valor' para o nome da sua coluna no banco de dados (ex: 'amount', 'price', etc)
+        // Verifica se o Model existe para não quebrar a tela
+        if (class_exists(Transaction::class)) {
+            $faturamentoMes = Transaction::whereMonth('transaction_date', Carbon::now()->month) // Usa a data da transação
+                ->where('type', 'entrada') // Filtra apenas o dinheiro que ENTROU (ignora saídas)
+                ->sum('amount'); // Soma os valores da coluna 'amount'
         }
 
         return [
@@ -54,7 +51,7 @@ class DashboardStats extends BaseWidget
                 ->description('Ganhos deste mês')
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success')
-                ->chart([150, 200, 100, 400, 300, 500, $faturamentoMes]), // Gráfico de linha verde subindo
+                ->chart([150, 200, 100, 400, 300, 500, (float) $faturamentoMes]), // Gráfico de linha verde
         ];
     }
 }
