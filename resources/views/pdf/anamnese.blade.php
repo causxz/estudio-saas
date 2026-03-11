@@ -163,16 +163,25 @@
         </table>
 
         <div class="signature-box">
-            <p style="font-size: 11px; color: #666; margin-bottom: 50px;">
+            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">
                 Declaro que as informações acima são verdadeiras e estou ciente de todas as orientações <br> 
                 e cuidados pós-procedimento necessários para a manutenção das extensões.
             </p>
+            
+            <div style="width: 350px; margin: 0 auto; text-align: center;">
+                @if($record->signature)
+                    <img src="{{ $record->signature }}" alt="Assinatura" style="max-height: 80px; display: block; margin: 0 auto;">
+                @else
+                    <br><br><br>
+                @endif
+            </div>
+            
             <div class="signature-line">
                 Assinatura da Cliente
             </div>
             <p style="margin-top: 5px;">{{ $record->created_at->format('d/m/Y') }}</p>
         </div>
-
+        
         <div class="footer">
             Documento gerado digitalmente pelo sistema Cérebro SaaS.
         </div>

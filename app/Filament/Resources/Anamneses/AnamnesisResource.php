@@ -86,7 +86,7 @@ class AnamnesisResource extends Resource
                             ->downloadable()
                             ->openable()
                             ->getUploadedFileNameForStorageUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file, \Filament\Schemas\Components\Utilities\Get $get): string {
-                                
+
                                 $clientId = $get('client_id');
                                 $nomeCliente = 'cliente_sem_nome';
 
@@ -103,7 +103,20 @@ class AnamnesisResource extends Resource
                                 return "{$nomeCliente}_{$dataUpload}.{$extensao}";
                             }),
                     ]),
-                    
+
+                Section::make('Termo de Responsabilidade')
+                    ->schema([
+                        \Saade\FilamentAutograph\Forms\Components\SignaturePad::make('signature')
+                            ->label('Assinatura da Cliente')
+                            ->penColor('#000000')
+                            ->penColorOnDark('#000000')
+                            ->backgroundColor('#ffffff')
+                            ->backgroundColorOnDark('#ffffff')
+                            ->clearable()
+                            ->required()
+                            ->columnSpanFull(),
+                    ]),
+
             ]);
     }
 
@@ -120,13 +133,13 @@ class AnamnesisResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
-                
+
                 // NOVO BOTÃO: Abrir Ficha Preenchida na Tela
                 Action::make('imprimir')
                     ->label('Ficha')
                     ->icon('heroicon-o-printer')
                     ->color('info')
-                    ->url(fn (Anamnesis $record) => route('anamnese.imprimir', $record->id))
+                    ->url(fn(Anamnesis $record) => route('anamnese.imprimir', $record->id))
                     ->openUrlInNewTab(), // Abre numa aba nova para não fechar o sistema
             ])
             ->toolbarActions([

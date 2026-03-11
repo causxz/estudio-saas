@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Carbon\Carbon;
 
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter; // <-- ADICIONADO AQUI
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\Indicator;
@@ -149,13 +150,25 @@ class AppointmentResource extends Resource
             ])
             ->filters([
 
+                // --- NOVO FILTRO DE STATUS AQUI ---
+                SelectFilter::make('status')
+                    ->label('Filtrar por Status')
+                    ->options([
+                        'agendado' => '📅 Agendado',
+                        'confirmado' => '✅ Confirmado',
+                        'concluido' => '✨ Concluído',
+                        'cancelado' => '❌ Cancelado',
+                    ])
+                    ->multiple() // Permite filtrar vários ao mesmo tempo
+                    ->preload(),
+
                 Filter::make('hoje')
                     ->label('Agendamentos de Hoje')
-                    ->toggle() // Transforma o filtro em uma chave liga/desliga
+                    ->toggle() 
                     ->query(fn (Builder $query): Builder => $query->whereDate('starts_at', Carbon::today()))
                     ->indicator('Hoje'),
 
-                    Filter::make('data_agendamento')
+                Filter::make('data_agendamento')
                     ->form([
                         DatePicker::make('agendado_de')->label('Agendado de:'),
                         DatePicker::make('agendado_ate')->label('Agendado até:'),
