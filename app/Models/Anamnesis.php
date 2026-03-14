@@ -24,4 +24,9 @@ class Anamnesis extends Model
     {
         return $this->belongsTo(\App\Models\Studio::class);
     }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
 }

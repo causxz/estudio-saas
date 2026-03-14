@@ -12,7 +12,7 @@ use Filament\Tables\Table;
 use Carbon\Carbon;
 
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter; // <-- ADICIONADO AQUI
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\Indicator;
@@ -24,8 +24,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 
-use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+
+use Illuminate\Support\Facades\Http;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\TextColumn;
 
 class AppointmentResource extends Resource
 {
@@ -115,6 +119,12 @@ class AppointmentResource extends Resource
                                     };
                                 },
                             ]),
+                        Select::make('location_id')
+                            ->relationship('location', 'name')
+                            ->label('Local do Atendimento')
+                            ->required()
+                            ->preload()
+                            ->searchable(),
 
                         Select::make('status')
                             ->options([
@@ -149,8 +159,6 @@ class AppointmentResource extends Resource
                 }),
             ])
             ->filters([
-
-                // --- NOVO FILTRO DE STATUS AQUI ---
                 SelectFilter::make('status')
                     ->label('Filtrar por Status')
                     ->options([
@@ -159,13 +167,13 @@ class AppointmentResource extends Resource
                         'concluido' => '✨ Concluído',
                         'cancelado' => '❌ Cancelado',
                     ])
-                    ->multiple() // Permite filtrar vários ao mesmo tempo
+                    ->multiple()
                     ->preload(),
 
                 Filter::make('hoje')
                     ->label('Agendamentos de Hoje')
-                    ->toggle() 
-                    ->query(fn (Builder $query): Builder => $query->whereDate('starts_at', Carbon::today()))
+                    ->toggle()
+                    ->query(fn(Builder $query): Builder => $query->whereDate('starts_at', Carbon::today()))
                     ->indicator('Hoje'),
 
                 Filter::make('data_agendamento')
@@ -177,11 +185,11 @@ class AppointmentResource extends Resource
                         return $query
                             ->when(
                                 $data['agendado_de'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('starts_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('starts_at', '>=', $date),
                             )
                             ->when(
                                 $data['agendado_ate'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('starts_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('starts_at', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -197,7 +205,88 @@ class AppointmentResource extends Resource
                         return $indicators;
                     })
             ])
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                EditAction::make(),
+
+                Action::make('confirmar_whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                    ->color('success')
+                    ->form([
+                        Select::make('local_atendimento')
+                            ->label('Onde será o atendimento?')
+                            ->options([
+                                // AQUI FICA A PERSONALIZAÇÃO PARA A LOUYSE LASH DESIGN:
+                                'Espaço Matriz' => 'Espaço Louyse Lash - Matriz (Insira a Rua aqui)',
+                                'Espaço Filial' => 'Espaço Louyse Lash - Filial (Insira a Rua aqui)',
+                                'Atendimento a Domicílio' => 'Atendimento a Domicílio (Iremos até você!)',
+                            ])
+                            ->required(),
+
+                        Textarea::make('observacao')
+                            ->label('Observação extra (Opcional)')
+                            ->placeholder('Ex: Venha com os cílios limpos e sem rímel...')
+                    ])
+                    ->action(function ($record, array $data) {
+
+                        $dataAgendamento = Carbon::parse($record->starts_at)->format('d/m/Y');
+                        $horaAgendamento = Carbon::parse($record->starts_at)->format('H:i');
+
+                        $nomeCliente = explode(' ', trim($record->client->name))[0];
+
+                        $local = $data['local_atendimento'];
+                        $obs = $data['observacao'] ? "\n📌 *Aviso:* {$data['observacao']}" : '';
+
+                        $mensagem = "Olá, *{$nomeCliente}*! ✨\n\nPassando para confirmar o seu agendamento de *{$record->service->name}* conosco na Louyse Lash Design.\n\n📅 *Data:* {$dataAgendamento}\n⏰ *Horário:* {$horaAgendamento}\n📍 *Local:* {$local}{$obs}\n\nPor favor, confirme respondendo a esta mensagem com *SIM* ou *NÃO*.\n\nAté logo! 💕";
+
+                        $telefoneRaw = $record->client->whatsapp ?? '';
+                        $numeroLimpo = preg_replace('/[^0-9]/', '', $telefoneRaw);
+
+                        if (empty($numeroLimpo) || strlen($numeroLimpo) < 10) {
+                            Notification::make()->title('Erro')->body('Cliente sem número de WhatsApp válido.')->danger()->send();
+                            return;
+                        }
+
+                        if (strlen($numeroLimpo) <= 11) {
+                            $numeroLimpo = '55' . $numeroLimpo;
+                        }
+
+                        $response = Http::withHeaders([
+                            'apikey' => 'ChaveSecretaEstudio123',
+                            'Content-Type' => 'application/json'
+                        ])->post("http://localhost:8080/message/sendText/estudio", [
+                            'number' => $numeroLimpo,
+                            'text' => $mensagem,
+                            'textMessage' => [
+                                'text' => $mensagem
+                            ],
+                            'options' => [
+                                'delay' => 1500,
+                                'presence' => 'composing'
+                            ]
+                        ]);
+
+                        if ($response->successful()) {
+                            $record->update(['status' => 'confirmado']);
+
+                            Notification::make()
+                                ->title('Enviado!')
+                                ->body('Mensagem de confirmação enviada com sucesso!')
+                                ->success()
+                                ->send();
+                        } else {
+                            $erro = $response->json('response.message') ?? 'Erro desconhecido';
+                            if (is_array($erro)) $erro = json_encode($erro);
+
+                            Notification::make()
+                                ->title('Falha ao enviar')
+                                ->body("Verifique a Evolution API. Erro: {$erro}")
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                        }
+                    })
+            ])
             ->defaultSort('starts_at', 'asc');
     }
 
