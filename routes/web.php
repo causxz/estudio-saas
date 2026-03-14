@@ -16,3 +16,22 @@ Route::get('/anamnese/{id}/imprimir', function ($id) {
     // Retorna aquela view visual que criamos antes
     return view('pdf.anamnese', compact('record'));
 })->name('anamnese.imprimir');
+
+
+//teste do docker whatsapp
+use Illuminate\Support\Facades\Http;
+
+Route::get('/conectar-whatsapp', function () {
+    $apiKey = 'ChaveSecretaEstudio123'; // A senha que definimos no Docker
+    
+    $response = Http::withHeaders([
+        'apikey' => $apiKey,
+        'Content-Type' => 'application/json'
+    ])->post('http://localhost:8080/instance/create', [
+        'instanceName' => 'estudio',
+        'token' => 'token_aleatorio_123', // Um token interno para esta instância
+        'qrcode' => true
+    ]);
+
+    return $response->json();
+});
