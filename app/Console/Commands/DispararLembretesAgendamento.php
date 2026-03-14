@@ -23,11 +23,16 @@ class DispararLembretesAgendamento extends Command
             ->whereBetween('starts_at', [$inicioDaHora, $fimDaHora])
             ->get();
 
+        if ($agendamentos->isEmpty()) {
+            $this->info('Nenhum agendamento encontrado para esta janela de horário.');
+            return;
+        }
+
         foreach ($agendamentos as $agendamento) {
             $this->enviarWhatsApp($agendamento);
         }
 
-        $this->info('Lembretes verificados e enviados: ' . $agendamentos->count());
+        $this->info("\n✅ Processo finalizado! Total processado: " . $agendamentos->count());
     }
 
     private function enviarWhatsApp($agendamento)
@@ -38,26 +43,49 @@ class DispararLembretesAgendamento extends Command
         
         $nomeCliente = explode(' ', trim($cliente->name))[0];
         
-        // Monta a mensagem dinâmica usando o banco de dados
-        $msg = "Olá, *{$nomeCliente}*! ✨\n\nEste é um lembrete automático do seu agendamento de *{$agendamento->service->name}* para amanhã!\n\n📅 *Data:* {$dataHora->format('d/m/Y')}\n⏰ *Horário:* {$dataHora->format('H:i')}\n📍 *Local:* {$local->name}\n📌 *Endereço:* {$local->address}";
+        // Verifica se o local existe para evitar erros caso tenha sido apagado
+        $nomeLocal = $local ? $local->name : 'Nosso Estúdio';
+        $enderecoLocal = $local ? $local->address : 'Endereço não cadastrado';
         
-        if ($local->maps_link) {
+        // Monta a mensagem dinâmica usando o banco de dados
+        $msg = "Olá, *{$nomeCliente}*! ✨\n\nEste é um lembrete automático do seu agendamento de *{$agendamento->service->name}* para amanhã!\n\n📅 *Data:* {$dataHora->format('d/m/Y')}\n⏰ *Horário:* {$dataHora->format('H:i')}\n📍 *Local:* {$nomeLocal}\n📌 *Endereço:* {$enderecoLocal}";
+        
+        if ($local && $local->maps_link) {
             $msg .= "\n🗺️ *Google Maps:* {$local->maps_link}";
         }
 
-        $msg .= "\n\nPor favor, responda com *SIM* para confirmar ou *NÃO* para reagendar. 💕";
 
+        // Tratamento do número
         $numero = preg_replace('/[^0-9]/', '', $cliente->whatsapp);
         if (strlen($numero) <= 11) $numero = '55' . $numero;
 
-        Http::withHeaders([
+        // Disparo com o Payload Blindado
+        $response = Http::withHeaders([
             'apikey' => 'ChaveSecretaEstudio123',
             'Content-Type' => 'application/json'
         ])->post("http://localhost:8080/message/sendText/estudio", [
             'number' => $numero,
-            'text' => $msg
+            'text' => $msg, // Formato v2
+            'textMessage' => [
+                'text' => $msg // Formato v1.6.1
+            ],
+            'options' => [
+                'delay' => 1500,
+                'presence' => 'composing'
+            ]
         ]);
         
+        // Feedback visual no Terminal
+        if ($response->successful()) {
+            $this->info("✔️  Enviado com sucesso para: {$nomeCliente} ({$numero})");
+        } else {
+            $erroDetalhe = $response->json('response.message') ?? $response->json('message') ?? $response->body();
+            if (is_array($erroDetalhe)) {
+                $erroDetalhe = json_encode($erroDetalhe, JSON_UNESCAPED_UNICODE);
+            }
+            $this->error("❌ Falha ao enviar para {$nomeCliente} ({$numero}): {$erroDetalhe}");
+        }
+
         sleep(3); // Antiban
     }
 }

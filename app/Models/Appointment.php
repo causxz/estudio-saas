@@ -12,7 +12,8 @@ class Appointment extends Model
         'starts_at',  
         'ends_at',    
         'status', 
-        'notes'
+        'notes',
+        'location_id',
     ];
 
     public function client()
@@ -36,5 +37,10 @@ class Appointment extends Model
     public function studio(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Studio::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
     }
 }
