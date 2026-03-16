@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class DashboardStats extends BaseWidget
 {
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 1; // Posição 1 (Fica no topo do ecrã)
 
     protected function getStats(): array
     {
@@ -22,16 +22,15 @@ class DashboardStats extends BaseWidget
         // CÁLCULO DO FATURAMENTO DO MÊS
         $faturamentoMes = 0;
         
-        // Verifica se o Model existe para não quebrar a tela
         if (class_exists(Transaction::class)) {
-            $faturamentoMes = Transaction::whereMonth('transaction_date', Carbon::now()->month) // Usa a data da transação
-                ->where('type', 'entrada') // Filtra apenas o dinheiro que ENTROU (ignora saídas)
-                ->sum('amount'); // Soma os valores da coluna 'amount'
+            $faturamentoMes = Transaction::whereMonth('transaction_date', Carbon::now()->month)
+                ->where('type', 'entrada') 
+                ->sum('amount');
         }
 
         return [
             Stat::make('Agendamentos para Hoje', $agendamentosHoje)
-                ->description($agendamentosHoje > 0 ? 'Você tem clientes hoje!' : 'Nenhum agendamento ainda.')
+                ->description($agendamentosHoje > 0 ? 'Tem clientes hoje!' : 'Nenhum agendamento.')
                 ->descriptionIcon('heroicon-m-calendar-days')
                 ->color($agendamentosHoje > 0 ? 'success' : 'gray'),
 
@@ -46,14 +45,11 @@ class DashboardStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-check-badge')
                 ->color('primary'),
 
-            // NOVO CARTÃO DE FATURAMENTO
-            Stat::make('Faturamento (Mês)', 'R$ ' . number_format($faturamentoMes, 2, ',', '.'))
+            Stat::make('Faturamento (Mês)', 'R$ ' . number_format((float)$faturamentoMes, 2, ',', '.'))
                 ->description('Ganhos deste mês')
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success')
-                ->chart([150, 200, 100, 400, 300, 500, (float) $faturamentoMes]), // Gráfico de linha verde
+                ->chart([150, 200, 100, 400, 300, 500, (float) $faturamentoMes]),
         ];
     }
-
-    
-}
+}   
