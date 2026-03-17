@@ -7,6 +7,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Filament\Pages\Tenancy\RegisterTenant;
 use Illuminate\Support\Str;
+use Filament\Forms\Components\Toggle;
 
 class RegisterStudio extends RegisterTenant
 {
@@ -25,6 +26,11 @@ class RegisterStudio extends RegisterTenant
                     ->required()
                     ->maxLength(255),
             ]);
+
+        Toggle::make('has_commissions')
+            ->label('Ativar Sistema de Comissões')
+            ->helperText('Ligue se o seu estúdio possui profissionais que ganham por comissão.')
+            ->default(false);
     }
 
     protected function handleRegistration(array $data): Studio

@@ -13,6 +13,11 @@ class Studio extends Model
     protected $fillable = [
         'name',
         'slug',
+        'has_commissions',
+    ];
+
+    protected $casts = [
+        'has_commissions' => 'boolean',
     ];
 
     // Relação: Um estúdio tem muitos utilizadores

@@ -43,4 +43,9 @@ class Appointment extends Model
     {
         return $this->belongsTo(Location::class);
     }
+
+    public function professional()
+    {
+        return $this->belongsTo(User::class, 'professional_id');
+    }
 }
