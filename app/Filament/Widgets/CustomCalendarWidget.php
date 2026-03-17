@@ -56,8 +56,7 @@ class CustomCalendarWidget extends Widget
     {
         return match ($status) {
             'agendado' =>   ['bg' => '#fef3c7', 'border' => '#fde68a', 'text' => '#b45309'], // Âmbar Suave
-            'confirmado' => ['bg' => '#d1fae5', 'border' => '#a7f3d0', 'text' => '#047857'], // Esmeralda Suave
-            'concluido' =>  ['bg' => '#e0e7ff', 'border' => '#c7d2fe', 'text' => '#4338ca'], // Indigo Suave
+            'concluido' => ['bg' => '#d1fae5', 'border' => '#a7f3d0', 'text' => '#047857'], // Esmeralda Suave
             'cancelado' =>  ['bg' => '#fee2e2', 'border' => '#fecaca', 'text' => '#b91c1c'], // Rosa/Vermelho Suave
             default =>      ['bg' => '#f1f5f9', 'border' => '#e2e8f0', 'text' => '#475569'], // Cinza Suave
         };
