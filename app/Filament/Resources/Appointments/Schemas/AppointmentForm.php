@@ -13,6 +13,8 @@ use Filament\Facades\Filament;
 use App\Models\Service;
 use App\Models\Appointment;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use App\Models\Professional;
 
 class AppointmentForm
 {
@@ -48,18 +50,20 @@ class AppointmentForm
                                 }
                             }),
 
-                        // --- CAMPO DE COMISSÃO ---
+                        // --- CAMPO COMISSÃO ---
                         Select::make('professional_id')
-                            ->relationship('professional', 'name')
+                            ->relationship(
+                                name: 'professional',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
                             ->label('Profissional Responsável')
                             ->searchable()
                             ->preload()
-                            // Só aparece se o Estúdio tiver a chave de "Comissões" ligada:
-                            ->visible(fn () => Filament::getTenant() && Filament::getTenant()->has_commissions)
-                            // Só é obrigatório se a chave estiver ligada:
-                            ->required(fn () => Filament::getTenant() && Filament::getTenant()->has_commissions)
-                            ->helperText('Selecione quem fará o serviço para o repasse de comissão.'),
-
+                            ->required()
+                            // A MÁGICA: Seleciona automaticamente o primeiro profissional do estúdio!
+                            ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
+                            ->helperText('Selecione quem fará o atendimento.'),
                         DateTimePicker::make('starts_at')
                             ->required()
                             ->label('Início')

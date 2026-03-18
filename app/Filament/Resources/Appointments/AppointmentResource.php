@@ -26,6 +26,7 @@ use Filament\Schemas\Components\Utilities\Set;
 
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Facades\Filament;
 
 class AppointmentResource extends Resource
 {
@@ -34,6 +35,8 @@ class AppointmentResource extends Resource
     protected static ?string $modelLabel = 'Agendamento';
     protected static ?string $pluralModelLabel = 'Agendamentos';
     protected static ?string $navigationLabel = 'Agendamentos';
+    
+    protected static ?string $tenantOwnershipRelationshipName = 'studio';
 
     public static function form(Schema $schema): Schema
     {
@@ -115,6 +118,21 @@ class AppointmentResource extends Resource
                                     };
                                 },
                             ]),
+                        
+                        // O CAMPO DO PROFISSIONAL - DEVE ESTAR NO SCHEMA DO FORMULÁRIO
+                        Select::make('professional_id')
+                            ->relationship(
+                                name: 'professional', 
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
+                            ->label('Profissional Responsável')
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn () => Filament::getTenant() && Filament::getTenant()->has_commissions)
+                            ->required(fn () => Filament::getTenant() && Filament::getTenant()->has_commissions)
+                            ->helperText('Selecione quem fará o serviço para o repasse de comissão.'),
+
                         Select::make('location_id')
                             ->relationship('location', 'name')
                             ->label('Local do Atendimento')
@@ -144,6 +162,16 @@ class AppointmentResource extends Resource
             ->columns([
                 TextColumn::make('client.name')->label('Cliente')->searchable(),
                 TextColumn::make('service.name')->label('Serviço'),
+                
+                // A COLUNA DO PROFISSIONAL - DEVE ESTAR AQUI NAS COLUMNS DA TABELA
+                TextColumn::make('professional.name')
+                    ->label('Profissional')
+                    ->searchable()
+                    ->sortable()
+                    ->badge() 
+                    ->color('gray')
+                    ->visible(fn() => Filament::getTenant() && Filament::getTenant()->has_commissions),
+
                 TextColumn::make('starts_at')->label('Início')->dateTime('d/m/Y H:i')->sortable(),
                 TextColumn::make('status')->badge()->color(fn($state) => match ($state) {
                     'agendado' => 'warning',
