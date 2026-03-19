@@ -10,12 +10,15 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use App\Filament\Resources\Professionals\Schemas\ProfessionalForm;
 use App\Filament\Resources\Professionals\Pages;
-use Filament\Support\Icons\Heroicon; 
+use Filament\Support\Icons\Heroicon;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 
 class ProfessionalResource extends Resource
 {
     protected static ?string $model = Professional::class;
-    
+
     protected static ?string $modelLabel = 'Profissional';
     protected static ?string $pluralModelLabel = 'Equipe / Profissionais';
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
@@ -48,8 +51,13 @@ class ProfessionalResource extends Resource
                     ->dateTime('d/m/Y')
                     ->sortable(),
             ])
+            ->filters([
+                TrashedFilter::make(),
+            ])
             ->recordActions([
-                EditAction::make()->modalWidth('md'), 
+                EditAction::make()->modalWidth('md'),
+                DeleteAction::make(),
+                RestoreAction::make(),
             ]);
     }
 
