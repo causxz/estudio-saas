@@ -6,6 +6,7 @@ use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\Concerns\InteractsWithPageTable;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
+use Filament\Facades\Filament;
 
 class TransactionStats extends StatsOverviewWidget
 {
@@ -20,12 +21,23 @@ class TransactionStats extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        // 3. Pega a busca do banco de dados COM OS FILTROS DA TABELA JÁ APLICADOS
+        // 3. Pega o ID do estúdio logado atualmente (Blindagem Multi-Tenancy)
+        $studioId = Filament::getTenant()->id;
+
+        // 4. Pega a busca do banco de dados COM OS FILTROS DA TABELA JÁ APLICADOS
         $query = $this->getPageTableQuery();
 
-        // 4. Faz as somas baseadas na busca filtrada
-        $entradas = (clone $query)->where('type', 'entrada')->sum('amount');
-        $saidas = (clone $query)->where('type', 'saida')->sum('amount');
+        // 5. Faz as somas baseadas na busca filtrada E travadas no estúdio atual
+        $entradas = (clone $query)
+            ->where('studio_id', $studioId) // Trava de segurança
+            ->where('type', 'entrada')
+            ->sum('amount');
+            
+        $saidas = (clone $query)
+            ->where('studio_id', $studioId) // Trava de segurança
+            ->where('type', 'saida')
+            ->sum('amount');
+            
         $saldo = $entradas - $saidas;
 
         return [

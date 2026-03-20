@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\Widget;
 use App\Models\Appointment;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 
 class CustomCalendarWidget extends Widget
 {
@@ -21,7 +22,12 @@ class CustomCalendarWidget extends Widget
 
     public function carregarAgendamentos(): void
     {
+        // 1. Pega o ID do estúdio atual
+        $studioId = Filament::getTenant()->id;
+
+        // 2. Filtra a busca do banco de dados travando no estúdio
         $this->events = Appointment::with(['client', 'service'])
+            ->where('studio_id', $studioId) // <-- BLINDAGEM AQUI
             ->get()
             ->map(function ($appointment) {
                 $cores = $this->obterCoresPastel($appointment->status ?? '');
@@ -41,7 +47,10 @@ class CustomCalendarWidget extends Widget
 
     public function updateAppointmentDates($id, $newStart, $newEnd): void
     {
-        $appointment = Appointment::find($id);
+        $studioId = Filament::getTenant()->id;
+        
+        // Busca o agendamento garantindo que ele PERTENCE ao estúdio logado
+        $appointment = Appointment::where('studio_id', $studioId)->find($id);
 
         if ($appointment) {
             $appointment->starts_at = Carbon::parse($newStart)->format('Y-m-d H:i:s');

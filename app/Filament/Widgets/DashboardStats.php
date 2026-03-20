@@ -8,22 +8,36 @@ use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 
 class DashboardStats extends BaseWidget
 {
-    protected static ?int $sort = 1; // Posição 1 (Fica no topo do ecrã)
+    protected static ?int $sort = 1; // Posição 1
 
     protected function getStats(): array
     {
-        $agendamentosHoje = Appointment::whereDate('starts_at', Carbon::today())->count();
-        $clientesMes = Client::whereMonth('created_at', Carbon::now()->month)->count();
-        $concluidos = Appointment::where('status', 'concluido')->count();
+        // 1. Pega o ID do estúdio logado atualmente (Blindagem Multi-Tenancy)
+        $studioId = Filament::getTenant()->id;
+
+        // 2. Filtra todas as métricas anexando o where('studio_id', $studioId)
+        $agendamentosHoje = Appointment::where('studio_id', $studioId)
+            ->whereDate('starts_at', Carbon::today())
+            ->count();
+            
+        $clientesMes = Client::where('studio_id', $studioId)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->count();
+            
+        $concluidos = Appointment::where('studio_id', $studioId)
+            ->where('status', 'concluido')
+            ->count();
 
         // CÁLCULO DO FATURAMENTO DO MÊS
         $faturamentoMes = 0;
         
         if (class_exists(Transaction::class)) {
-            $faturamentoMes = Transaction::whereMonth('transaction_date', Carbon::now()->month)
+            $faturamentoMes = Transaction::where('studio_id', $studioId)
+                ->whereMonth('transaction_date', Carbon::now()->month)
                 ->where('type', 'entrada') 
                 ->sum('amount');
         }
@@ -52,4 +66,4 @@ class DashboardStats extends BaseWidget
                 ->chart([150, 200, 100, 400, 300, 500, (float) $faturamentoMes]),
         ];
     }
-}   
+}
