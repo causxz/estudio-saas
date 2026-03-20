@@ -22,12 +22,11 @@ class TransactionForm
                         Select::make('appointment_id')
                             ->label('Agendamento Vinculado (Opcional)')
                             ->relationship('appointment', 'id')
-                            ->getOptionLabelFromRecordUsing(fn($record) => "Agendamento #{$record->id} - " . ($record->client->name ?? 'Sem cliente') . " (" . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y') . ")")
-                            ->searchable()
+                            ->getOptionLabelFromRecordUsing(fn($record) => "Agendamento #{$record->id} - " . ($record->client?->name ?? 'Sem cliente') . " (" . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y') . ")")->searchable()
                             ->preload()
                             ->helperText('Vincule a um agendamento para o sistema calcular a comissão automaticamente.')
                             ->live(),
-                            
+
                         Select::make('type')
                             ->label('Tipo de Movimentação')
                             ->options([

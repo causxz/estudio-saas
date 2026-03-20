@@ -38,7 +38,7 @@ class Transaction extends Model
     // RELACIONAMENTO: Uma transação pode pertencer a um Profissional (opcional)
     public function professional()
     {
-        return $this->belongsTo(Professional::class);
+        return $this->belongsTo(Professional::class)->withTrashed();
     }
 
     protected static function booted()
