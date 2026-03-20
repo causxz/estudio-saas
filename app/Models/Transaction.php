@@ -72,7 +72,7 @@ class Transaction extends Model
                             'appointment_id' => $transaction->appointment_id,
                             'professional_id' => $appointment->professional_id,
                             'type' => 'saida',
-                            'amount' => $appointment->service->commission_amount,
+                            'amount' => ($appointment->service->price * $appointment->service->commission_percentage) / 100,
                             'description' => 'Comissão automática - ' . $appointment->service->name,
                             'transaction_date' => $transaction->transaction_date,
                             'payment_method' => null,
