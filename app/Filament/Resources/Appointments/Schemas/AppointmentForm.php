@@ -50,20 +50,19 @@ class AppointmentForm
                                 }
                             }),
 
-                        // --- CAMPO COMISSÃO ---
+                        // --- CAMPO COMISSÃO E EQUIPE ---
                         Select::make('professional_id')
                             ->relationship(
                                 name: 'professional',
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
                             )
-                            ->label('Profissional Responsável')
+                            ->label('Profissional Responsável (Opcional)')
                             ->searchable()
-                            ->preload()
-                            ->required()
-                            // A MÁGICA: Seleciona automaticamente o primeiro profissional do estúdio!
+                            ->preload()             
                             ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
-                            ->helperText('Selecione quem fará o atendimento.'),
+                            ->helperText('Deixe em branco se o estúdio não trabalhar com múltiplos profissionais.'),
+                            
                         DateTimePicker::make('starts_at')
                             ->required()
                             ->label('Início')
@@ -93,21 +92,28 @@ class AppointmentForm
                                         $startsAt = $get('starts_at');
                                         $endsAt = $value;
                                         $appointmentId = $get('id');
+                                        $professionalId = $get('professional_id');
+                                        $studioId = Filament::getTenant()->id;
 
-                                        $exists = Appointment::where(function ($query) use ($startsAt, $endsAt) {
-                                            $query->whereBetween('starts_at', [$startsAt, $endsAt])
-                                                ->orWhereBetween('ends_at', [$startsAt, $endsAt])
-                                                ->orWhere(function ($q) use ($startsAt, $endsAt) {
-                                                    $q->where('starts_at', '<=', $startsAt)
-                                                        ->where('ends_at', '>=', $endsAt);
-                                                });
-                                        })
+                                        $exists = Appointment::where('studio_id', $studioId)
                                             ->where('status', '!=', 'cancelado')
-                                            ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId))
+                                            ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId)) // Ignora a si mesmo na edição
+                                            ->when($professionalId, function ($query, $profId) {
+                                                // Se tem profissional, olha só a agenda DELE
+                                                return $query->where('professional_id', $profId);
+                                            }, function ($query) {
+                                                // Se NÃO tem profissional (estúdio de 1 pessoa), olha a agenda geral sem dono
+                                                return $query->whereNull('professional_id');
+                                            })
+                                            ->where(function ($query) use ($startsAt, $endsAt) {
+                                                // O novo começa ANTES do existente terminar E termina DEPOIS do existente começar
+                                                $query->where('starts_at', '<', $endsAt)
+                                                      ->where('ends_at', '>', $startsAt);
+                                            })
                                             ->exists();
 
                                         if ($exists) {
-                                            $fail('Este horário já está ocupado.');
+                                            $fail('Este horário já está ocupado na agenda' . ($professionalId ? ' deste profissional.' : ' do estúdio.'));
                                         }
                                     };
                                 },
