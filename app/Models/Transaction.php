@@ -9,6 +9,7 @@ class Transaction extends Model
     protected $fillable = [
         'appointment_id',
         'professional_id',
+        'studio_id',
         'description',
         'type',
         'amount',
@@ -45,7 +46,7 @@ class Transaction extends Model
         static::created(function (Transaction $transaction) {
             // 1. Só dispara se for uma "entrada" e estiver vinculada a um agendamento
             if ($transaction->type === 'entrada' && $transaction->appointment_id) {
-                
+
                 // Verifica se o estúdio tem o módulo de comissões LIGADO
                 $studio = \App\Models\Studio::find($transaction->studio_id);
                 if (!$studio || !$studio->has_commissions) {
@@ -57,7 +58,7 @@ class Transaction extends Model
 
                 // 3. Verifica se existe um profissional, serviço e se a comissão é > 0
                 if ($appointment && $appointment->professional_id && $appointment->service && $appointment->service->commission_amount > 0) {
-                    
+
                     // 4. Trava de segurança contra duplicidade
                     $jaExiste = \App\Models\Transaction::where('appointment_id', $transaction->appointment_id)
                         ->where('type', 'saida')
@@ -70,11 +71,11 @@ class Transaction extends Model
                             'studio_id' => $transaction->studio_id,
                             'appointment_id' => $transaction->appointment_id,
                             'professional_id' => $appointment->professional_id,
-                            'type' => 'saida', 
+                            'type' => 'saida',
                             'amount' => $appointment->service->commission_amount,
                             'description' => 'Comissão automática - ' . $appointment->service->name,
                             'transaction_date' => $transaction->transaction_date,
-                            'payment_method' => null, 
+                            'payment_method' => null,
                             'notes' => 'Gerado automaticamente pelo sistema através da entrada #' . $transaction->id,
                         ]);
                     }
@@ -82,4 +83,4 @@ class Transaction extends Model
             }
         });
     }
-    }
+}

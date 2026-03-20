@@ -19,6 +19,15 @@ class TransactionForm
                 Section::make('Detalhes da Movimentação')
                     ->columns(2)
                     ->schema([
+                        Select::make('appointment_id')
+                            ->label('Agendamento Vinculado (Opcional)')
+                            ->relationship('appointment', 'id')
+                            ->getOptionLabelFromRecordUsing(fn($record) => "Agendamento #{$record->id} - " . ($record->client->name ?? 'Sem cliente') . " (" . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y') . ")")
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Vincule a um agendamento para o sistema calcular a comissão automaticamente.')
+                            ->live(),
+                            
                         Select::make('type')
                             ->label('Tipo de Movimentação')
                             ->options([
@@ -26,7 +35,7 @@ class TransactionForm
                                 'saida' => 'Saída (Despesa / Comissão)',
                             ])
                             ->required()
-                            ->live() // Essencial no v5 para ativar a reatividade
+                            ->live()
                             ->native(false),
 
                         TextInput::make('description')
