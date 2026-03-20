@@ -56,8 +56,8 @@ class Transaction extends Model
                 // 2. Busca o agendamento completo com o serviço
                 $appointment = \App\Models\Appointment::with('service')->find($transaction->appointment_id);
 
-                // 3. Verifica se existe um profissional, serviço e se a comissão é > 0
-                if ($appointment && $appointment->professional_id && $appointment->service && $appointment->service->commission_amount > 0) {
+                // 3. AQUI ESTÁ A CORREÇÃO: Mudamos para commission_percentage > 0
+                if ($appointment && $appointment->professional_id && $appointment->service && $appointment->service->commission_percentage > 0) {
 
                     // 4. Trava de segurança contra duplicidade
                     $jaExiste = \App\Models\Transaction::where('appointment_id', $transaction->appointment_id)
@@ -72,6 +72,7 @@ class Transaction extends Model
                             'appointment_id' => $transaction->appointment_id,
                             'professional_id' => $appointment->professional_id,
                             'type' => 'saida',
+                            // AQUI ESTÁ A CORREÇÃO DA MATEMÁTICA:
                             'amount' => ($appointment->service->price * $appointment->service->commission_percentage) / 100,
                             'description' => 'Comissão automática - ' . $appointment->service->name,
                             'transaction_date' => $transaction->transaction_date,
