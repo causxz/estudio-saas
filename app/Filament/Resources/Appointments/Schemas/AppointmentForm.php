@@ -59,7 +59,8 @@ class AppointmentForm
                             )
                             ->label('Profissional Responsável (Opcional)')
                             ->searchable()
-                            ->preload()             
+                            ->preload()
+                            ->live() // <<< A MÁGICA: Agora o backend sabe na mesma hora quem você escolheu
                             ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
                             ->helperText('Deixe em branco se o estúdio não trabalhar com múltiplos profissionais.'),
                             
@@ -87,36 +88,38 @@ class AppointmentForm
                             ->displayFormat('d/m/Y H:i')
                             ->helperText('O horário final já inclui o tempo de limpeza/buffer.')
                             ->rules([
-                                function (Get $get) {
-                                    return function (string $attribute, $value, $fail) use ($get) {
-                                        $startsAt = $get('starts_at');
-                                        $endsAt = $value;
-                                        $appointmentId = $get('id');
-                                        $professionalId = $get('professional_id');
-                                        $studioId = Filament::getTenant()->id;
+                                // Injetamos o $record para o sistema saber se você está editando
+                                fn (Get $get, ?Appointment $record) => function (string $attribute, $value, $fail) use ($get, $record) {
+                                    $startsAtRaw = $get('starts_at');
+                                    $endsAtRaw = $value;
 
-                                        $exists = Appointment::where('studio_id', $studioId)
-                                            ->where('status', '!=', 'cancelado')
-                                            ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId)) // Ignora a si mesmo na edição
-                                            ->when($professionalId, function ($query, $profId) {
-                                                // Se tem profissional, olha só a agenda DELE
-                                                return $query->where('professional_id', $profId);
-                                            }, function ($query) {
-                                                // Se NÃO tem profissional (estúdio de 1 pessoa), olha a agenda geral sem dono
-                                                return $query->whereNull('professional_id');
-                                            })
-                                            ->where(function ($query) use ($startsAt, $endsAt) {
-                                                // O novo começa ANTES do existente terminar E termina DEPOIS do existente começar
-                                                $query->where('starts_at', '<', $endsAt)
-                                                      ->where('ends_at', '>', $startsAt);
-                                            })
-                                            ->exists();
+                                    if (!$startsAtRaw || !$endsAtRaw) return;
 
-                                        if ($exists) {
-                                            $fail('Este horário já está ocupado na agenda' . ($professionalId ? ' deste profissional.' : ' do estúdio.'));
-                                        }
-                                    };
-                                },
+                                    $startsAt = Carbon::parse($startsAtRaw)->format('Y-m-d H:i:s');
+                                    $endsAt = Carbon::parse($endsAtRaw)->format('Y-m-d H:i:s');
+
+                                    $appointmentId = $record?->id;
+                                    $professionalId = $get('professional_id');
+                                    $studioId = Filament::getTenant()->id;
+
+                                    $exists = Appointment::where('studio_id', $studioId)
+                                        ->where('status', '!=', 'cancelado')
+                                        ->when($appointmentId, fn($q) => $q->where('id', '!=', $appointmentId))
+                                        ->when($professionalId, function ($query) use ($professionalId) {
+                                            return $query->where('professional_id', $professionalId);
+                                        }, function ($query) {
+                                            return $query->whereNull('professional_id');
+                                        })
+                                        ->where(function ($query) use ($startsAt, $endsAt) {
+                                            $query->where('starts_at', '<', $endsAt)
+                                                  ->where('ends_at', '>', $startsAt);
+                                        })
+                                        ->exists();
+
+                                    if ($exists) {
+                                        $fail('Este horário já está ocupado na agenda' . ($professionalId ? ' desta profissional.' : ' do estúdio.'));
+                                    }
+                                }
                             ]),
 
                         Select::make('location_id')
