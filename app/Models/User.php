@@ -56,6 +56,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     // 4. Permissão geral para aceder ao painel
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->studios()->exists(); // Apenas usuários com pelo menos 1 estúdio acessam
+        $studio = $this->studios()->first();
+
+        if (!$studio) return false;
+
+        // Se estiver ativo ou ainda no trial, permite acesso
+        return in_array($studio->status, ['active', 'trialing']) || $studio->expires_at > now();
     }
 }

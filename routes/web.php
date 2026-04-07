@@ -41,7 +41,40 @@ Route::get('/register', function () {
     return redirect()->route('filament.admin.auth.register');
 })->name('register');
 
-// Também é uma boa prática definir a rota 'login' para o welcome.blade.php
+//Definir a rota 'login' para o welcome.blade.php
 Route::get('/login', function () {
     return redirect()->route('filament.admin.auth.login');
 })->name('login');
+
+use App\Http\Controllers\AsaasWebhookController;
+
+// Rota para o Asaas enviar notificações
+Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle']);
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+// Mantemos o GET para caso algum botão seja apenas um link
+Route::get('/login', function () {
+    return redirect()->route('filament.admin.auth.login');
+})->name('login');
+
+// Adicionamos o POST para processar o formulário da sua Landing Page
+Route::post('/login', function (Request $request) {
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        
+        // Redireciona para o painel do Filament
+        return redirect()->intended('/admin');
+    }
+
+    // Se a senha estiver errada, volta para a página inicial com erro
+    return back()->withErrors([
+        'email' => 'E-mail ou senha incorretos.',
+    ])->onlyInput('email');
+});
