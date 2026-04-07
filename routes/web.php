@@ -35,3 +35,13 @@ Route::get('/conectar-whatsapp', function () {
 
     return $response->json();
 });
+
+// Define a rota 'register' redirecionando para o registro do Filament
+Route::get('/register', function () {
+    return redirect()->route('filament.admin.auth.register');
+})->name('register');
+
+// Também é uma boa prática definir a rota 'login' para o welcome.blade.php
+Route::get('/login', function () {
+    return redirect()->route('filament.admin.auth.login');
+})->name('login');

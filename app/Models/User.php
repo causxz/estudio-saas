@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasTenants; 
+use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -56,6 +56,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     // 4. Permissão geral para aceder ao painel
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        return $this->studios()->exists(); // Apenas usuários com pelo menos 1 estúdio acessam
     }
 }

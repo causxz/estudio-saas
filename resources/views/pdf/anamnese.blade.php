@@ -165,7 +165,7 @@
         <div class="signature-box">
             <p style="font-size: 11px; color: #666; margin-bottom: 20px;">
                 Declaro que as informações acima são verdadeiras e estou ciente de todas as orientações <br> 
-                e cuidados pós-procedimento necessários para a manutenção das extensões.
+                e cuidados pós-procedimento necessários para a longevidade das extensões.
             </p>
             
             <div style="width: 350px; margin: 0 auto; text-align: center;">
@@ -183,7 +183,7 @@
         </div>
         
         <div class="footer">
-            Documento gerado digitalmente pelo sistema Cérebro SaaS.
+            Documento gerado digitalmente pelo sistema.
         </div>
     </div>
 
