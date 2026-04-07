@@ -14,6 +14,11 @@ class Studio extends Model
         'name',
         'slug',
         'has_commissions',
+        'asaas_customer_id', 
+        'subscription_id',   
+        'plan_type',         
+        'status',            
+        'expires_at',        
     ];
 
     protected $casts = [
