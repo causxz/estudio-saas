@@ -64,4 +64,6 @@ class Studio extends Model
     {
         return $this->hasMany(Professional::class);
     }
+
+    
 }

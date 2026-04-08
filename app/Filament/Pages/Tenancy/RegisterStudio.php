@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterStudio extends RegisterTenant
 {
@@ -58,7 +59,8 @@ class RegisterStudio extends RegisterTenant
         }
 
         $data['slug'] = $slug;
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         // --- 1. INTEGRAÇÃO ASAAS (Antes de salvar no banco local) --- //
         try {
             // Cria o Cliente no Asaas
@@ -102,7 +104,7 @@ class RegisterStudio extends RegisterTenant
         }
 
         // --- 2. PERSISTÊNCIA SEGURA NO BANCO (DB::transaction) --- //
-        // Se qualquer linha aqui dentro der erro, o banco desfaz TUDO!
+        // Se qualquer linha aqui dentro der erro, o banco desfaz TUDO
         return DB::transaction(function () use ($data, $user) {
 
             // Cria o estúdio no banco de dados

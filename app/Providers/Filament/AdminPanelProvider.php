@@ -16,6 +16,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Pages\Tenancy\EditStudioProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -34,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             // --- CONFIGURAÇÃO DO SAAS (TENANCY) ---
             ->tenant(\App\Models\Studio::class)
             ->tenantRegistration(\App\Filament\Pages\Tenancy\RegisterStudio::class)
+            ->tenantProfile(EditStudioProfile::class)
             
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
