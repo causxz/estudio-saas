@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Studio extends Model
 {
@@ -25,6 +26,8 @@ class Studio extends Model
         'has_commissions' => 'boolean',
     ];
 
+    // --- RELAÇÕES --- //
+
     // Relação: Um estúdio tem muitos utilizadores
     public function users(): BelongsToMany
     {
@@ -36,7 +39,7 @@ class Studio extends Model
     {
         return $this->hasMany(Client::class);
     }
-
+    
     public function services(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Service::class);
@@ -55,5 +58,10 @@ class Studio extends Model
     public function anamneses(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Anamnesis::class);
+    }
+
+    public function professionals(): HasMany
+    {
+        return $this->hasMany(Professional::class);
     }
 }

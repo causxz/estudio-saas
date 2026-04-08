@@ -29,7 +29,7 @@ class RegisterStudio extends RegisterTenant
                     ->placeholder('Ex: Louyse Lash Design')
                     ->required()
                     ->maxLength(255),
-                    
+
                 Select::make('plan_type')
                     ->label('Escolha seu Plano')
                     ->options([
@@ -49,9 +49,16 @@ class RegisterStudio extends RegisterTenant
 
     protected function handleRegistration(array $data): Studio
     {
-        $data['slug'] = Str::slug($data['name']);
-        $user = auth()->user();
+        // 1. Gera o slug base
+        $slug = Str::slug($data['name']);
 
+        // 2. Verifica se já existe. Se existir, adiciona um código aleatório no final (ex: estudio-matriz-a7b2)
+        if (\App\Models\Studio::where('slug', $slug)->exists()) {
+            $slug .= '-' . strtolower(Str::random(4));
+        }
+
+        $data['slug'] = $slug;
+        $user = auth()->user();
         // --- 1. INTEGRAÇÃO ASAAS (Antes de salvar no banco local) --- //
         try {
             // Cria o Cliente no Asaas
@@ -66,7 +73,7 @@ class RegisterStudio extends RegisterTenant
             if ($response->successful()) {
                 $customerId = $response->json('id');
                 $data['asaas_customer_id'] = $customerId;
-                
+
                 $valores = ['iniciante' => 29.00, 'professional' => 79.00, 'business' => 149.00];
                 $valorPlano = $valores[$data['plan_type']] ?? 79.00;
 
@@ -81,7 +88,7 @@ class RegisterStudio extends RegisterTenant
                     'cycle' => 'MONTHLY',
                     'description' => "Mensalidade Agenda Lash - Plano " . ucfirst($data['plan_type'])
                 ]);
-                
+
                 if ($subResponse->successful()) {
                     $data['subscription_id'] = $subResponse->json('id');
                 } else {
@@ -97,7 +104,7 @@ class RegisterStudio extends RegisterTenant
         // --- 2. PERSISTÊNCIA SEGURA NO BANCO (DB::transaction) --- //
         // Se qualquer linha aqui dentro der erro, o banco desfaz TUDO!
         return DB::transaction(function () use ($data, $user) {
-            
+
             // Cria o estúdio no banco de dados
             $studio = Studio::create($data);
 
