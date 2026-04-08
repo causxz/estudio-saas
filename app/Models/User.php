@@ -63,4 +63,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         // Se estiver ativo ou ainda no trial, permite acesso
         return in_array($studio->status, ['active', 'trialing']) || $studio->expires_at > now();
     }
+
+    // 5. Permissão para criar novos estúdios (tenants)
+    public function canCreateTenants(): bool
+    {
+        // Se a usuária já tem 1 ou mais estúdios, retorna false (esconde o botão)
+        // Se ela tiver 0 (acabou de criar a conta), retorna true (mostra a tela de registro)
+        return $this->studios()->count() === 0;
+    }
 }
