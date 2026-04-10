@@ -31,7 +31,7 @@ Route::post('/processar-login', function (Request $request) {
     return redirect('/')->withErrors([
         'email' => 'As credenciais estão incorretas.',
     ])->onlyInput('email');
-})->name('processar.login');
+})->name('processar.login')->middleware('throttle:5,1'); // Limita a 5 tentativas por minuto para segurança
 
 // 4. Redirecionar os botões de "Assinar" para o Registro do Filament
 Route::get('/register', function () {

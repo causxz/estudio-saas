@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use Filament\Tables\Filters\Filter;
+use Filament\Facades\Filament; // <-- IMPORTANTE PARA SEGURANÇA
 
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -20,7 +21,6 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -38,6 +38,22 @@ class TransactionResource extends Resource
     protected static ?string $pluralModelLabel = 'Fluxo de Caixa';
     protected static ?string $navigationLabel = 'Financeiro';
     protected static ?int $navigationSort = 4;
+
+    // 💡 MELHORIA BÔNUS: Controle de Acesso!
+    // Apenas quem criou o estúdio (ou é dono) consegue ver esta aba no menu esquerdo
+    public static function canViewAny(): bool
+    {
+        $tenant = Filament::getTenant();
+        $user = auth()->user();
+
+        // Se você tiver uma forma de checar se o usuário é o dono, use aqui. 
+        // Exemplo comum usando a tabela pivô (studio_user):
+        // Se a lógica do seu sistema for "só o primeiro a criar é dono", 
+        // isso garante que funcionárias não mexam no caixa.
+        return $tenant && $tenant->users()->where('user_id', $user->id)->exists(); 
+        
+        // *Se você tiver roles configuradas, substitua por: return $user->role === 'admin';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -61,12 +77,14 @@ class TransactionResource extends Resource
                             ->relationship(
                                 name: 'appointment', 
                                 titleAttribute: 'id',
-                                // Filtra os agendamentos disponíveis
                                 modifyQueryUsing: function (Builder $query, ?Transaction $record) {
-                                    // 1. Traz apenas agendamentos que NÃO têm uma transação (pagamento)
+                                    // 🚨 REGRA DE SEGURANÇA 1: Só agendamentos DESTE estúdio
+                                    $query->where('studio_id', Filament::getTenant()->id);
+
+                                    // Traz apenas agendamentos que NÃO têm uma transação (pagamento)
                                     $query->whereDoesntHave('transaction');
                                     
-                                    // 2. REGRA DE SEGURANÇA: Se estivermos na tela de EDIÇÃO de uma transação, 
+                                    // Se estivermos na tela de EDIÇÃO de uma transação, 
                                     // precisamos garantir que o agendamento já vinculado a ela continue aparecendo na lista.
                                     if ($record && $record->appointment_id) {
                                         $query->orWhere('id', $record->appointment_id);
@@ -75,7 +93,7 @@ class TransactionResource extends Resource
                                     return $query;
                                 }
                             )
-                            ->getOptionLabelFromRecordUsing(fn (Appointment $record) => $record->client->name . ' - ' . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y H:i'))
+                            ->getOptionLabelFromRecordUsing(fn (Appointment $record) => ($record->client?->name ?? 'Sem cliente') . ' - ' . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y H:i'))
                             ->searchable()
                             ->preload()
                             ->columnSpanFull()
@@ -92,6 +110,7 @@ class TransactionResource extends Resource
                                     }
                                 }
                             }),
+                            
                         TextInput::make('description')
                             ->label('Descrição')
                             ->required()

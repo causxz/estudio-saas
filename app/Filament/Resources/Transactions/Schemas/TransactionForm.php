@@ -9,6 +9,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Facades\Filament; 
+use Illuminate\Database\Eloquent\Builder;
 
 class TransactionForm
 {
@@ -19,10 +21,16 @@ class TransactionForm
                 Section::make('Detalhes da Movimentação')
                     ->columns(2)
                     ->schema([
+                        // BLINDADO: Agendamentos apenas do estúdio atual
                         Select::make('appointment_id')
                             ->label('Agendamento Vinculado (Opcional)')
-                            ->relationship('appointment', 'id')
-                            ->getOptionLabelFromRecordUsing(fn($record) => "Agendamento #{$record->id} - " . ($record->client?->name ?? 'Sem cliente') . " (" . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y') . ")")->searchable()
+                            ->relationship(
+                                name: 'appointment',
+                                titleAttribute: 'id',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id) // SEGURANÇA APLICADA
+                            )
+                            ->getOptionLabelFromRecordUsing(fn($record) => "Agendamento #{$record->id} - " . ($record->client?->name ?? 'Sem cliente') . " (" . \Carbon\Carbon::parse($record->starts_at)->format('d/m/Y') . ")")
+                            ->searchable()
                             ->preload()
                             ->helperText('Vincule a um agendamento para o sistema calcular a comissão automaticamente.')
                             ->live(),
@@ -64,12 +72,18 @@ class TransactionForm
                             ])
                             ->native(false),
 
+                        // BLINDADO: Profissionais apenas do estúdio atual
                         Select::make('professional_id')
                             ->label('Profissional (Destinatário)')
-                            ->relationship('professional', 'name')
+                            ->relationship(
+                                name: 'professional',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id) // SEGURANÇA APLICADA
+                            )
                             ->searchable()
                             ->preload()
-                            ->helperText('Use este campo apenas para Vales, Bônus ou pagamentos manuais. As comissões de serviços são geradas automaticamente.')->visible(fn(Get $get): bool => $get('type') === 'saida'),
+                            ->helperText('Use este campo apenas para Vales, Bônus ou pagamentos manuais. As comissões de serviços são geradas automaticamente.')
+                            ->visible(fn(Get $get): bool => $get('type') === 'saida'),
 
                         Textarea::make('notes')
                             ->label('Observações Adicionais')
