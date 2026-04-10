@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AsaasWebhookController;
 use App\Models\Anamnesis;
 
-// 1. A ROTA PRINCIPAL QUE SERVE A LANDING PAGE E O FORMULÁRIO DE LOGIN
+// 1. A ROTA PRINCIPAL 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// 2. FORÇA O NOME 'login' PARA A HOME (O Filament respeitará isto se falhar o Auth)
+// 2. FORÇA O NOME 'login' PARA A  HOME (O Filament respeitará isto se falhar o Auth)
 Route::get('/login-site', function () {
     return redirect('/');
 })->name('login');
@@ -25,17 +25,20 @@ Route::post('/processar-login', function (Request $request) {
 
     if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
-        // Login com sucesso Vai direto para o painel
         return redirect()->to('/admin');
     }
 
-    // Falhou? Volta para a Landing page com o erro.
     return redirect('/')->withErrors([
         'email' => 'As credenciais estão incorretas.',
     ])->onlyInput('email');
 })->name('processar.login');
 
-// Outras rotas essenciais
+// 4. Redirecionar os botões de "Assinar" para o Registro do Filament
+Route::get('/register', function () {
+    return redirect()->route('filament.admin.auth.register');
+})->name('register');
+
+//outras rotas essenciais
 Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle']);
 Route::get('/anamnese/{id}/imprimir', function ($id) {
     $record = Anamnesis::with('client')->findOrFail($id);
