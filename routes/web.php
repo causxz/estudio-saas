@@ -38,6 +38,20 @@ Route::get('/register', function () {
     return redirect()->route('filament.admin.auth.register');
 })->name('register');
 
+// 1. Força qualquer requisição perdida de 'login' a voltar para a Home
+Route::get('/redirecionar-login', function () {
+    return redirect('/');
+})->name('login');
+
+// 2. O nosso Logout Exclusivo (Bypass do Filament)
+Route::get('/sair-agora', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/'); // Volta para a Landing Page 
+})->name('sair.agora');
+
 //outras rotas essenciais
 Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle']);
 Route::get('/anamnese/{id}/imprimir', function ($id) {
