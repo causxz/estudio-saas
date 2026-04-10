@@ -277,7 +277,7 @@
                     <div class="text-5xl font-bold mb-8 text-[var(--earth-dark)]">R$29<span class="text-sm font-normal text-stone-400">/mês</span></div>
 
                     <ul class="space-y-6 mb-12 flex-grow">
-                        <li class="flex items-center gap-3 text-stone-600">
+                        <li class="flex items-center gap-3 text-stone-600 font-medium">
                             <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
@@ -296,7 +296,6 @@
                             <span>Suporte Básico</span>
                         </li>
                     </ul>
-
                     <a href="{{ route('register') }}" class="plan-btn block text-center py-4 rounded-xl border border-stone-300 font-bold hover:bg-stone-50 text-stone-600 transition-all">Escolher Básico</a>
                 </div>
 
@@ -305,33 +304,38 @@
                     <h3 class="text-xl font-bold mb-2 text-stone-100">Professional</h3>
                     <div class="text-6xl font-bold mb-8 text-white">R$79<span class="text-sm font-normal text-stone-300">/mês</span></div>
 
-                    <ul class="space-y-6 mb-12 flex-grow text-stone-200">
-                        <li class="flex items-center gap-3">
+                    <ul class="space-y-6 mb-12 flex-grow">
+                        <li class="flex items-center gap-3 text-stone-200">
+                            <svg class="w-5 h-5 text-[var(--earth-accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                            </svg>
+                            <span>Tudo do plano Básico</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-stone-100 font-semibold">
                             <svg class="w-5 h-5 text-[var(--earth-accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>Até 5 Profissionais</span>
                         </li>
-                        <li class="flex items-center gap-3">
+                        <li class="flex items-center gap-3 text-stone-200">
                             <svg class="w-5 h-5 text-[var(--earth-accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>WhatsApp Automático</span>
                         </li>
-                        <li class="flex items-center gap-3">
+                        <li class="flex items-center gap-3 text-stone-200">
                             <svg class="w-5 h-5 text-[var(--earth-accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>Ficha Anamnese Digital</span>
                         </li>
-                        <li class="flex items-center gap-3">
+                        <li class="flex items-center gap-3 text-stone-200">
                             <svg class="w-5 h-5 text-[var(--earth-accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>Suporte Prioritário</span>
                         </li>
                     </ul>
-
                     <a href="{{ route('register') }}" class="plan-btn block text-center py-5 rounded-2xl bg-[var(--earth-accent)] font-extrabold text-xl glow-effect text-[var(--earth-dark)] shadow-2xl transition-all">Assinar Agora</a>
                 </div>
 
@@ -339,27 +343,32 @@
                     <h3 class="text-lg font-bold mb-2 text-stone-800">Elite Business</h3>
                     <div class="text-5xl font-bold mb-8 text-[var(--earth-dark)]">R$149<span class="text-sm font-normal text-stone-400">/mês</span></div>
 
-                    <ul class="space-y-6 mb-12 flex-grow text-stone-600">
-                        <li class="flex items-center gap-3 font-semibold text-[var(--earth-primary)]">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    <ul class="space-y-6 mb-12 flex-grow">
+                        <li class="flex items-center gap-3 text-stone-600">
+                            <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
-                            <span>Consultor de Marketing IA</span>
+                            <span>Tudo do plano Professional</span>
                         </li>
-                        <li class="flex items-center gap-3">
+                        <li class="flex items-center gap-3 text-stone-600 font-medium">
                             <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>Profissionais Ilimitados</span>
                         </li>
-                        <li class="flex items-center gap-3">
+                        <li class="flex items-center gap-3 text-[var(--earth-primary)] font-bold">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            </svg>
+                            <span>Consultor de Marketing IA</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-stone-600">
                             <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
                             </svg>
                             <span>Gestão de Múltiplas Sedes</span>
                         </li>
                     </ul>
-
                     <a href="{{ route('register') }}" class="plan-btn block text-center py-4 rounded-xl border-2 border-[var(--earth-primary)] text-[var(--earth-primary)] font-bold hover:bg-[var(--earth-primary)] hover:text-white transition-all">Escolher Business</a>
                 </div>
             </div>
