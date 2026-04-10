@@ -132,8 +132,7 @@
                 @auth
                 <a href="{{ url('/admin') }}" class="btn-earth text-white px-6 py-2.5 rounded-full">Meu Painel</a>
                 @else
-                <a href="{{ route('login') }}" class="hover:text-[var(--earth-primary)] transition border border-transparent hover:border-[var(--earth-primary)] px-5 py-2 rounded-full">Acessar Sistema</a>
-                @endauth
+                <a href="#login-form" class="hover:text-[var(--earth-primary)] transition border border-transparent hover:border-[var(--earth-primary)] px-5 py-2 rounded-full">Acessar Sistema</a> @endauth
             </div>
         </div>
     </nav>
@@ -164,10 +163,9 @@
             </div>
 
             <div class="hero-card">
-                <div class="bg-white p-10 rounded-[var(--radius-pro)] shadow-[0_30px_100px_-20px_rgba(69,43,31,0.15)] border border-stone-50 relative">
+                <div id="login-form" class="bg-white p-10 rounded-[var(--radius-pro)] shadow-[0_30px_100px_-20px_rgba(69,43,31,0.15)] border border-stone-50 relative">
                     <h2 class="text-2xl font-bold mb-8">Acessar Sistema</h2>
-                    <form method="POST" action="{{ route('login') }}" class="space-y-5">
-                        @csrf
+                    <form method="POST" action="{{ route('processar.login') }}" class="space-y-5"> @csrf
                         @error('email')
                         <div class="bg-red-50 text-red-600 text-sm p-3 rounded-xl font-medium border border-red-100">
                             {{ $message }}
