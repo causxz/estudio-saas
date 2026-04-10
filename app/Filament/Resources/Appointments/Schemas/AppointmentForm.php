@@ -25,15 +25,26 @@ class AppointmentForm
                 Section::make('Detalhes do Agendamento')
                     ->columns(2)
                     ->schema([
+                        
+                        // 1. CLIENTE (Blindado para o Estúdio Atual)
                         Select::make('client_id')
-                            ->relationship('client', 'name')
+                            ->relationship(
+                                name: 'client', 
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
                             ->searchable()
                             ->preload()
                             ->required()
                             ->label('Cliente'),
 
+                        // 2. SERVIÇO (Blindado para o Estúdio Atual)
                         Select::make('service_id')
-                            ->relationship('service', 'name')
+                            ->relationship(
+                                name: 'service', 
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
                             ->searchable()
                             ->preload()
                             ->required()
@@ -50,25 +61,14 @@ class AppointmentForm
                                 }
                             }),
 
-                        // --- CAMPO COMISSÃO E EQUIPE ---
-                        Select::make('professional_id')
-                            ->relationship(
-                                name: 'professional',
-                                titleAttribute: 'name',
-                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
-                            )
-                            ->label('Profissional Responsável (Opcional)')
-                            ->searchable()
-                            ->preload()
-                            ->live() // <<< A MÁGICA: Agora o backend sabe na mesma hora quem você escolheu
-                            ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
-                            ->helperText('Deixe em branco se o estúdio não trabalhar com múltiplos profissionais.'),
-                            
+                        // 3. INÍCIO (Travado contra o passado)
                         DateTimePicker::make('starts_at')
+                            ->label('Início do Agendamento')
                             ->required()
-                            ->label('Início')
                             ->seconds(false)
                             ->displayFormat('d/m/Y H:i')
+                            ->minDate(now()) // Bloqueia datas retroativas
+                            ->native(false)
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                 $serviceId = $get('service_id');
@@ -81,15 +81,17 @@ class AppointmentForm
                                 }
                             }),
 
+                        // 4. FIM (Travado para ser DEPOIS do início e com verificação de conflito)
                         DateTimePicker::make('ends_at')
-                            ->required()
                             ->label('Término (Com Buffer)')
+                            ->required()
                             ->seconds(false)
                             ->displayFormat('d/m/Y H:i')
+                            ->after('starts_at') // Garante cronologia correta
+                            ->native(false)
                             ->helperText('O horário final já inclui o tempo de limpeza/buffer.')
                             ->rules([
-                                // Injetamos o $record para o sistema saber se você está editando
-                                fn (Get $get, ?Appointment $record) => function (string $attribute, $value, $fail) use ($get, $record) {
+                                fn(Get $get, ?Appointment $record) => function (string $attribute, $value, $fail) use ($get, $record) {
                                     $startsAtRaw = $get('starts_at');
                                     $endsAtRaw = $value;
 
@@ -112,7 +114,7 @@ class AppointmentForm
                                         })
                                         ->where(function ($query) use ($startsAt, $endsAt) {
                                             $query->where('starts_at', '<', $endsAt)
-                                                  ->where('ends_at', '>', $startsAt);
+                                                ->where('ends_at', '>', $startsAt);
                                         })
                                         ->exists();
 
@@ -122,13 +124,33 @@ class AppointmentForm
                                 }
                             ]),
 
+                        // 5. PROFISSIONAL 
+                        Select::make('professional_id')
+                            ->relationship(
+                                name: 'professional',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
+                            ->label('Profissional Responsável (Opcional)')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
+                            ->helperText('Deixe em branco se o estúdio não trabalhar com múltiplos profissionais.'),
+
+                        // 6. LOCAL (Blindado para o Estúdio Atual)
                         Select::make('location_id')
-                            ->relationship('location', 'name')
+                            ->relationship(
+                                name: 'location', 
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
                             ->label('Local do Atendimento')
                             ->required()
                             ->preload()
                             ->searchable(),
 
+                        // 7. STATUS e OBSERVAÇÕES
                         Select::make('status')
                             ->options([
                                 'agendado' => 'Agendado',
