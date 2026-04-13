@@ -1,6 +1,13 @@
 <x-filament-widgets::widget>
     <x-filament::section class="bg-white rounded-2xl shadow-sm border border-gray-100">
 
+        <div class="flex flex-col md:flex-row items-center justify-between mb-4 border-b border-gray-100 pb-4 gap-4 md:gap-0">
+            <h2 class="text-xl font-bold text-gray-800">Minha Agenda</h2>
+            <div>
+                {{ $this->createAppointmentAction }}
+            </div>
+        </div>
+
         <style>
             .fc { font-family: inherit; }
             .fc-theme-standard .fc-scrollgrid { border: none !important; }
@@ -93,16 +100,32 @@
                                 day: 'Dia'
                             },
 
+                            // INTERATIVIDADE DE ARRASTAR
                             eventDrop: (info) => {
                                 $wire.updateAppointmentDates(info.event.id, info.event.startStr, info.event.endStr || info.event.startStr);
                             },
                             eventResize: (info) => {
                                 $wire.updateAppointmentDates(info.event.id, info.event.startStr, info.event.endStr || info.event.startStr);
+                            },
+                            
+                            // Livewire puxa a Action do PHP
+                            eventClick: function(info) {
+                                info.jsEvent.preventDefault();
+                                $wire.mountAction('editAppointment', { record: info.event.id });
                             }
                         });
+                        
                         calendar.render();
+
+                        // Escutar eventos de atualização do Livewire para redesenhar a tela
+                        window.addEventListener('filament-action-closed', () => {
+                             window.location.reload(); 
+                        });
                     }
                 }"></div>
         </div>
     </x-filament::section>
+
+    <x-filament-actions::modals />
 </x-filament-widgets::widget>
+

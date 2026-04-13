@@ -6,9 +6,20 @@ use Filament\Widgets\Widget;
 use App\Models\Appointment;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Schemas\Schema;
+use App\Filament\Resources\Appointments\Schemas\AppointmentForm;
 
-class CustomCalendarWidget extends Widget
+class CustomCalendarWidget extends Widget implements HasForms, HasActions
 {
+    use InteractsWithForms;
+    use InteractsWithActions;
+
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
 
@@ -20,21 +31,50 @@ class CustomCalendarWidget extends Widget
         $this->carregarAgendamentos();
     }
 
+    // --- 1. AÇÃO: CRIAR NOVO AGENDAMENTO VIA BOTÃO (+) ---
+    public function createAppointmentAction(): \Filament\Actions\Action
+    {
+        return CreateAction::make('createAppointment')
+            ->label('+')
+            ->model(Appointment::class)
+            ->form(AppointmentForm::configure(new Schema())->getComponents())
+            ->mutateFormDataUsing(function (array $data): array {
+                $data['studio_id'] = Filament::getTenant()->id; // SEGURANÇA NA CRIAÇÃO
+                return $data;
+            })
+            ->after(function () {
+                $this->carregarAgendamentos(); // Atualiza a agenda imediatamente
+            })
+            ->successNotificationTitle('Agendamento salvo na agenda!');
+    }
+
+    // --- 2. AÇÃO: EDITAR AO CLICAR NO EVENTO ---
+    public function editAppointmentAction(): \Filament\Actions\Action
+    {
+        return EditAction::make('editAppointment')
+            ->record(fn(array $arguments) => Appointment::where('studio_id', Filament::getTenant()->id)->find($arguments['record'])) // SEGURANÇA NA EDIÇÃO
+            ->form(AppointmentForm::configure(new Schema())->getComponents())
+            ->after(function () {
+                $this->carregarAgendamentos(); // Atualiza a agenda imediatamente
+            })
+            ->successNotificationTitle('Agendamento atualizado com sucesso!');
+    }
+
+    // --- 3. CARREGAR EVENTOS DO BANCO ---
     public function carregarAgendamentos(): void
     {
-        // 1. Pega o ID do estúdio atual
         $studioId = Filament::getTenant()->id;
 
-        // 2. Filtra a busca do banco de dados travando no estúdio
+        // SEGURANÇA: Filtra a busca do banco de dados travando no estúdio
         $this->events = Appointment::with(['client', 'service'])
-            ->where('studio_id', $studioId) // <-- BLINDAGEM AQUI
+            ->where('studio_id', $studioId)
             ->get()
             ->map(function ($appointment) {
                 $cores = $this->obterCoresPastel($appointment->status ?? '');
 
                 return [
                     'id' => $appointment->id,
-                    'title' => $appointment->client->name . ' - ' . $appointment->service->name,
+                    'title' => ($appointment->client->name ?? 'Sem Cliente') . ' - ' . ($appointment->service->name ?? 'Sem Serviço'),
                     'start' => $appointment->starts_at,
                     'end' => $appointment->ends_at,
                     'backgroundColor' => $cores['bg'],
@@ -45,11 +85,12 @@ class CustomCalendarWidget extends Widget
             ->toArray();
     }
 
+    // --- 4. ARRASTAR E SOLTAR (DRAG AND DROP) ---
     public function updateAppointmentDates($id, $newStart, $newEnd): void
     {
         $studioId = Filament::getTenant()->id;
-        
-        // Busca o agendamento garantindo que ele PERTENCE ao estúdio logado
+
+        // SEGURANÇA: Busca o agendamento garantindo que ele PERTENCE ao estúdio logado
         $appointment = Appointment::where('studio_id', $studioId)->find($id);
 
         if ($appointment) {

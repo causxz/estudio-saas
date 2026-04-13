@@ -70,6 +70,8 @@ class AppointmentForm
                             ->minDate(now()) // Bloqueia datas retroativas
                             ->native(false)
                             ->live()
+                            -> closeOnDateSelection()
+                            ->minutesStep(10)
                             ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                 $serviceId = $get('service_id');
                                 if ($state && $serviceId) {
