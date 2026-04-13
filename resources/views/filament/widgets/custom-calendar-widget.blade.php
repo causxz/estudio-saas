@@ -1,7 +1,7 @@
 <x-filament-widgets::widget>
     <x-filament::section class="bg-white rounded-2xl shadow-sm border border-gray-100">
 
-        <div class="flex flex-col md:flex-row items-center justify-between mb-4 border-b border-gray-100 pb-4 gap-4 md:gap-0">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-gray-100 pb-6 gap-4 md:gap-0">
             <h2 class="text-xl font-bold text-gray-800">Minha Agenda</h2>
             <div>
                 {{ $this->createAppointmentAction }}
@@ -10,6 +10,10 @@
 
         <style>
             .fc { font-family: inherit; }
+            
+            /* Respiro para o calendário no desktop */
+            #meu-calendario { padding-top: 10px; }
+
             .fc-theme-standard .fc-scrollgrid { border: none !important; }
             .fc-theme-standard td, .fc-theme-standard th { border-color: #f8fafc !important; }
             .fc-col-header-cell { border-bottom: 1px solid #f1f5f9 !important; padding: 16px 0 !important; }
@@ -52,7 +56,7 @@
         </style>
 
         <div wire:ignore>
-            <div id="meu-calendario" class="mt-2"
+            <div id="meu-calendario"
                 x-data="{
                     init() {
                         if (typeof FullCalendar === 'undefined') {
@@ -84,7 +88,6 @@
                             eventOverlap: false, 
                             events: eventosDoBanco,
                             
-                            // CONFIGURAÇÃO DO MENU (HEADER)
                             headerToolbar: {
                                 left: 'prev,next today',
                                 center: 'title',
@@ -100,7 +103,6 @@
                                 day: 'Dia'
                             },
 
-                            // INTERATIVIDADE DE ARRASTAR
                             eventDrop: (info) => {
                                 $wire.updateAppointmentDates(info.event.id, info.event.startStr, info.event.endStr || info.event.startStr);
                             },
@@ -108,7 +110,7 @@
                                 $wire.updateAppointmentDates(info.event.id, info.event.startStr, info.event.endStr || info.event.startStr);
                             },
                             
-                            // Livewire puxa a Action do PHP
+                            // Edit Modal Action
                             eventClick: function(info) {
                                 info.jsEvent.preventDefault();
                                 $wire.mountAction('editAppointment', { record: info.event.id });
@@ -117,7 +119,6 @@
                         
                         calendar.render();
 
-                        // Escutar eventos de atualização do Livewire para redesenhar a tela
                         window.addEventListener('filament-action-closed', () => {
                              window.location.reload(); 
                         });
@@ -128,4 +129,3 @@
 
     <x-filament-actions::modals />
 </x-filament-widgets::widget>
-
