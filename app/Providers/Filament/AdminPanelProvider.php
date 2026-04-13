@@ -40,7 +40,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             // --- CONFIGURAÇÃO DO SAAS (TENANCY) ---
             ->tenant(\App\Models\Studio::class)
-            ->tenantRegistration(\App\Filament\Pages\Tenancy\RegisterStudio::class)
             ->tenantProfile(EditStudioProfile::class)
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
