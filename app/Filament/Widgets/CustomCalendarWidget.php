@@ -37,7 +37,7 @@ class CustomCalendarWidget extends Widget implements HasForms, HasActions
         return CreateAction::make('createAppointment')
             ->label('+')
             ->model(Appointment::class)
-            ->slideOver() // 👈 Gaveta Lateral: Resolve o problema do selecionador de horas no desktop
+            ->slideOver() 
             ->modalWidth('2xl') 
             ->form(AppointmentForm::configure(new Schema())->getComponents())
             ->mutateFormDataUsing(function (array $data): array {
@@ -55,8 +55,8 @@ class CustomCalendarWidget extends Widget implements HasForms, HasActions
     {
         return EditAction::make('editAppointment')
             ->record(fn(array $arguments) => Appointment::where('studio_id', Filament::getTenant()->id)->find($arguments['record'])) // SEGURANÇA NA EDIÇÃO
-            ->slideOver() // 👈 Gaveta Lateral também na edição
-            ->modalWidth('2xl') // 👈 Modal com espaço respirável
+            ->slideOver() 
+            ->modalWidth('2xl')
             ->form(AppointmentForm::configure(new Schema())->getComponents())
             ->after(function () {
                 $this->carregarAgendamentos(); // Atualiza a agenda imediatamente
