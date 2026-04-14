@@ -35,9 +35,33 @@ class AdminPanelProvider extends PanelProvider
             ])  
             ->registration() // Permite criar conta
             ->authGuard('web')
+            
+            // --- CONFIGURAÇÃO DE APARÊNCIA ---
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 => '#fdf8f6',
+                    100 => '#f2e8e5',
+                    200 => '#eaddd7',
+                    300 => '#e0cec7',
+                    400 => '#d2bab0',
+                    500 => '#a18072', // Destaque: Botões, links, ícones ativos
+                    600 => '#977669', // Hover dos botões
+                    700 => '#846358',
+                    800 => '#43302b',
+                    900 => '#271c19', // Fundo no Modo Escuro
+                    950 => '#1c1412',
+                ],
+                
+                'gray' => Color::Stone, 
+                // Cores de status ajustadas para tons mais elegantes
+                'danger' => Color::Rose, 
+                'info' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
             ])
+            // TIPOGRAFIA
+            ->font('Inter')
+            
             // --- CONFIGURAÇÃO DO SAAS (TENANCY) ---
             ->tenant(\App\Models\Studio::class)
             ->tenantProfile(EditStudioProfile::class)
