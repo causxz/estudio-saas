@@ -32,9 +32,11 @@ class AppointmentForm
                                 name: 'client', 
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                                ->withoutTrashed()
                             )
                             ->searchable()
                             ->preload()
+                            
                             ->required()
                             ->label('Cliente'),
 
@@ -44,6 +46,7 @@ class AppointmentForm
                                 name: 'service', 
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                                ->withoutTrashed()
                             )
                             ->searchable()
                             ->preload()
@@ -132,10 +135,11 @@ class AppointmentForm
                                 name: 'professional',
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                                ->withoutTrashed()
                             )
                             ->label('Profissional Responsável (Opcional)')
                             ->searchable()
-                            ->preload()
+                            ->preload()                    
                             ->live()
                             ->default(fn() => Professional::where('studio_id', Filament::getTenant()->id)->first()?->id)
                             ->helperText('Deixe em branco se o estúdio não trabalhar com múltiplos profissionais.'),
@@ -146,6 +150,7 @@ class AppointmentForm
                                 name: 'location', 
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                                ->withoutTrashed()
                             )
                             ->label('Local do Atendimento')
                             ->required()
