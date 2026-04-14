@@ -12,7 +12,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use Filament\Tables\Filters\Filter;
-use Filament\Facades\Filament; // <-- IMPORTANTE PARA SEGURANÇA
+use Filament\Facades\Filament;
 
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
@@ -27,6 +27,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\Summarizers\Sum; 
 
 class TransactionResource extends Resource
 {
@@ -39,20 +40,12 @@ class TransactionResource extends Resource
     protected static ?string $navigationLabel = 'Financeiro';
     protected static ?int $navigationSort = 4;
 
-    // 💡 MELHORIA BÔNUS: Controle de Acesso!
-    // Apenas quem criou o estúdio (ou é dono) consegue ver esta aba no menu esquerdo
     public static function canViewAny(): bool
     {
         $tenant = Filament::getTenant();
         $user = auth()->user();
 
-        // Se você tiver uma forma de checar se o usuário é o dono, use aqui. 
-        // Exemplo comum usando a tabela pivô (studio_user):
-        // Se a lógica do seu sistema for "só o primeiro a criar é dono", 
-        // isso garante que funcionárias não mexam no caixa.
         return $tenant && $tenant->users()->where('user_id', $user->id)->exists(); 
-        
-        // *Se você tiver roles configuradas, substitua por: return $user->role === 'admin';
     }
 
     public static function form(Schema $schema): Schema
@@ -66,7 +59,7 @@ class TransactionResource extends Resource
                             ->label('Tipo de Movimentação')
                             ->options([
                                 'entrada' => '🟢 Entrada (Receita)',
-                                'saida' => '🔴 Saída (Despesa)',
+                                'saida' => '🔴 Saída (Despesa / Comissão)',
                             ])
                             ->required()
                             ->default('entrada')
@@ -78,14 +71,9 @@ class TransactionResource extends Resource
                                 name: 'appointment', 
                                 titleAttribute: 'id',
                                 modifyQueryUsing: function (Builder $query, ?Transaction $record) {
-                                    // 🚨 REGRA DE SEGURANÇA 1: Só agendamentos DESTE estúdio
                                     $query->where('studio_id', Filament::getTenant()->id);
-
-                                    // Traz apenas agendamentos que NÃO têm uma transação (pagamento)
                                     $query->whereDoesntHave('transaction');
                                     
-                                    // Se estivermos na tela de EDIÇÃO de uma transação, 
-                                    // precisamos garantir que o agendamento já vinculado a ela continue aparecendo na lista.
                                     if ($record && $record->appointment_id) {
                                         $query->orWhere('id', $record->appointment_id);
                                     }
@@ -114,7 +102,7 @@ class TransactionResource extends Resource
                         TextInput::make('description')
                             ->label('Descrição')
                             ->required()
-                            ->placeholder('Ex: Manutenção Cílios, Compra de Fios, Aluguel...')
+                            ->placeholder('Ex: Pagamento de Comissão, Compra de Fios, Aluguel...')
                             ->maxLength(255)
                             ->columnSpanFull(),
 
@@ -134,22 +122,32 @@ class TransactionResource extends Resource
                                 'dinheiro' => 'Dinheiro (Espécie)',
                             ])
                             ->required()
-                            ->live(), //Avisa o sistema para ficar atento quando ela escolher a forma de pagamento
+                            ->live(),
+                
+                        Select::make('professional_id')
+                            ->label('Profissional (Destinatário)')
+                            ->relationship(
+                                name: 'professional',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Preencha para registrar o pagamento de comissões ou vales.')
+                            ->visible(fn(Get $get): bool => $get('type') === 'saida'),
 
-                        //Campo fantasma que só aparece se for Dinheiro
                         TextInput::make('amount_received')
                             ->label('Valor Recebido (R$)')
                             ->numeric()
                             ->prefix('R$')
-                            ->live(onBlur: true) // Aguarda ela terminar de digitar/clicar fora
-                            ->dehydrated(false) // Não salva no banco de dados
+                            ->live(onBlur: true)
+                            ->dehydrated(false)
                             ->hidden(fn (Get $get) => $get('payment_method') !== 'dinheiro')
                             ->helperText('Digite o valor da nota que a cliente entregou.')
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                 $valorServico = (float) $get('amount');
                                 $valorRecebido = (float) $state;
                                 
-                                // Calcula o troco e joga para o campo de baixo
                                 if ($valorRecebido > $valorServico) {
                                     $set('change_amount', number_format($valorRecebido - $valorServico, 2, '.', ''));
                                 } else {
@@ -157,12 +155,11 @@ class TransactionResource extends Resource
                                 }
                             }),
 
-                        // Mostrador automático de troco
                         TextInput::make('change_amount')
                             ->label('Troco a Devolver')
                             ->prefix('R$')
                             ->readOnly()
-                            ->dehydrated(false) //Não salva no banco de dados
+                            ->dehydrated(false)
                             ->hidden(fn (Get $get) => $get('payment_method') !== 'dinheiro'),
 
                         DatePicker::make('transaction_date')
@@ -197,6 +194,11 @@ class TransactionResource extends Resource
                     })
                     ->formatStateUsing(fn (string $state): string => ucfirst($state)),
 
+                TextColumn::make('professional.name')
+                    ->label('Profissional')
+                    ->searchable()
+                    ->placeholder('-'),
+
                 TextColumn::make('description')
                     ->label('Descrição')
                     ->searchable(),
@@ -204,7 +206,8 @@ class TransactionResource extends Resource
                 TextColumn::make('amount')
                     ->label('Valor')
                     ->money('BRL')
-                    ->sortable(),
+                    ->sortable()
+                    ->summarize(Sum::make()->money('BRL')->label('Total')),
 
                 TextColumn::make('payment_method')
                     ->label('Pagamento')
@@ -223,8 +226,17 @@ class TransactionResource extends Resource
                         'entrada' => 'Apenas Entradas',
                         'saida' => 'Apenas Saídas',
                     ]),
+                
+                SelectFilter::make('professional_id')
+                    ->label('Filtrar por Profissional')
+                    ->relationship(
+                        name: 'professional', 
+                        titleAttribute: 'name', 
+                        modifyQueryUsing: fn (Builder $query) => $query->where('studio_id', Filament::getTenant()->id)
+                    )
+                    ->searchable()
+                    ->preload(),
 
-                //FILTRO DE DATA
                 Filter::make('periodo')
                     ->form([
                         Select::make('period')
@@ -237,7 +249,7 @@ class TransactionResource extends Resource
                                 'este_semestre' => 'Últimos 6 Meses',
                                 'este_ano' => 'Este Ano',
                             ])
-                            ->default('este_mes'), //Começa mostrando o mês atual
+                            ->default('este_mes'), 
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         if (empty($data['period'])) {
