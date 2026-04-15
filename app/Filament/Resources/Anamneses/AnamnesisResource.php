@@ -76,41 +76,41 @@ class AnamnesisResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Ficha Física / Digitalização')
-                    ->schema([
-                        FileUpload::make('physical_file')
-                            ->label('Upload da Ficha (PDF/Foto)')
-                            ->disk('public')
-                            ->directory('anamneses')
-                            ->acceptedFileTypes(['application/pdf', 'image/*'])
-                            ->downloadable()
-                            ->openable()
-                            ->getUploadedFileNameForStorageUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file, \Filament\Schemas\Components\Utilities\Get $get): string {
+                // Section::make('Ficha Física / Digitalização')
+                //     ->schema([
+                //         FileUpload::make('physical_file')
+                //             ->label('Upload da Ficha (PDF/Foto)')
+                //             ->disk('public')
+                //             ->directory('anamneses')
+                //             ->acceptedFileTypes(['application/pdf', 'image/*'])
+                //             ->downloadable()
+                //             ->openable()
+                //             ->getUploadedFileNameForStorageUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file, \Filament\Schemas\Components\Utilities\Get $get): string {
 
-                                $clientId = $get('client_id');
-                                $nomeCliente = 'cliente_sem_nome';
+                //                 $clientId = $get('client_id');
+                //                 $nomeCliente = 'cliente_sem_nome';
 
-                                if ($clientId) {
-                                    $cliente = \App\Models\Client::find($clientId);
-                                    if ($cliente) {
-                                        $nomeCliente = \Illuminate\Support\Str::slug($cliente->name);
-                                    }
-                                }
+                //                 if ($clientId) {
+                //                     $cliente = \App\Models\Client::find($clientId);
+                //                     if ($cliente) {
+                //                         $nomeCliente = \Illuminate\Support\Str::slug($cliente->name);
+                //                     }
+                //                 }
 
-                                $extensao = $file->getClientOriginalExtension();
-                                $dataUpload = now()->format('d-m-Y_H-i');
+                //                 $extensao = $file->getClientOriginalExtension();
+                //                 $dataUpload = now()->format('d-m-Y_H-i');
 
-                                return "{$nomeCliente}_{$dataUpload}.{$extensao}";
-                            }),
-                    ]),
+                //                 return "{$nomeCliente}_{$dataUpload}.{$extensao}";
+                //             }),
+                //     ]),
 
                 Section::make('Termo de Responsabilidade')
                     ->schema([
                         \Saade\FilamentAutograph\Forms\Components\SignaturePad::make('signature')
                             ->label('Assinatura da Cliente')
-                            ->penColor('#000000')
+                            ->penColor('#ffffff')
                             ->penColorOnDark('#000000')
-                            ->backgroundColor('#ffffff')
+                            ->backgroundColor('#313131')
                             ->backgroundColorOnDark('#ffffff')
                             ->clearable()
                             ->required()
