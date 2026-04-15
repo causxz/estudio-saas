@@ -16,7 +16,6 @@ use Filament\Tables\Table;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 
@@ -25,8 +24,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-// use Barryvdh\DomPDF\Facade\Pdf;
-// use Illuminate\Support\Facades\Storage;
 use Filament\Actions\Action;
 
 use BackedEnum;
@@ -75,34 +72,6 @@ class AnamnesisResource extends Resource
                             ->label('Observações Adicionais')
                             ->columnSpanFull(),
                     ]),
-
-                // Section::make('Ficha Física / Digitalização')
-                //     ->schema([
-                //         FileUpload::make('physical_file')
-                //             ->label('Upload da Ficha (PDF/Foto)')
-                //             ->disk('public')
-                //             ->directory('anamneses')
-                //             ->acceptedFileTypes(['application/pdf', 'image/*'])
-                //             ->downloadable()
-                //             ->openable()
-                //             ->getUploadedFileNameForStorageUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file, \Filament\Schemas\Components\Utilities\Get $get): string {
-
-                //                 $clientId = $get('client_id');
-                //                 $nomeCliente = 'cliente_sem_nome';
-
-                //                 if ($clientId) {
-                //                     $cliente = \App\Models\Client::find($clientId);
-                //                     if ($cliente) {
-                //                         $nomeCliente = \Illuminate\Support\Str::slug($cliente->name);
-                //                     }
-                //                 }
-
-                //                 $extensao = $file->getClientOriginalExtension();
-                //                 $dataUpload = now()->format('d-m-Y_H-i');
-
-                //                 return "{$nomeCliente}_{$dataUpload}.{$extensao}";
-                //             }),
-                //     ]),
 
                 Section::make('Termo de Responsabilidade')
                     ->schema([
