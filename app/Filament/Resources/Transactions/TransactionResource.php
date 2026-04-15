@@ -27,7 +27,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\Summarizers\Sum; 
+
 
 class TransactionResource extends Resource
 {
@@ -206,8 +206,7 @@ class TransactionResource extends Resource
                 TextColumn::make('amount')
                     ->label('Valor')
                     ->money('BRL')
-                    ->sortable()
-                    ->summarize(Sum::make()->money('BRL')->label('Total')),
+                    ->sortable(),                    
 
                 TextColumn::make('payment_method')
                     ->label('Pagamento')
