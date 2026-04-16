@@ -11,10 +11,12 @@ class AsaasWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        // 1. Validar o Token de Segurança do Asaas definido no .env
+        // 1. Validar o Token de Segurança do Asaas AJUSTADO (Proteção contra Bypass e Timing Attack)
         $token = $request->header('asaas-access-token');
-        if ($token !== config('services.asaas.webhook_token')) {
-            Log::warning('Tentativa de Webhook Asaas com token inválido.', ['ip' => $request->ip()]);
+        $configToken = config('services.asaas.webhook_token');
+
+        if (empty($configToken) || empty($token) || !hash_equals((string) $configToken, (string) $token)) {
+            Log::warning('Tentativa de Webhook Asaas com token inválido ou ausente.', ['ip' => $request->ip()]);
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

@@ -47,21 +47,27 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->studios;
     }
 
-    // 3. Trava de Segurança: Este utilizador tem permissão para aceder a ESTE estúdio específico?
+    // 3. Trava de Segurança AJUSTADA: Este utilizador tem permissão para aceder a ESTE estúdio específico?
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->studios()->whereKey($tenant)->exists();
+        // Verifica primeiro se o utilizador tem vínculo com o estúdio
+        $belongsToStudio = $this->studios()->whereKey($tenant)->exists();
+        
+        if (!$belongsToStudio) {
+            return false;
+        }
+
+        // Verifica a assinatura apenas deste estúdio específico
+        return in_array($tenant->status, ['active', 'trialing']) || $tenant->expires_at > now();
     }
 
-    // 4. Permissão geral para aceder ao painel
+    // 4. Permissão geral para aceder ao painel AJUSTADA
     public function canAccessPanel(Panel $panel): bool
     {
-        $studio = $this->studios()->first();
-
-        if (!$studio) return false;
-
-        // Se estiver ativo ou ainda no trial, permite acesso
-        return in_array($studio->status, ['active', 'trialing']) || $studio->expires_at > now();
+        // Retorna true para permitir que o utilizador entre no sistema. 
+        // A trava de segurança real agora acontece no canAccessTenant (acima) 
+        // ou direciona para a criação de um novo estúdio (abaixo).
+        return true;
     }
 
     // 5. Permissão para criar novos estúdios (tenants)

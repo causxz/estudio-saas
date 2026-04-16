@@ -53,7 +53,8 @@ Route::get('/sair-agora', function (\Illuminate\Http\Request $request) {
 })->name('sair.agora');
 
 //outras rotas essenciais
-Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle']);
+Route::post('/webhooks/asaas', [AsaasWebhookController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::get('/anamnese/{id}/imprimir', function ($id) {
     $record = Anamnesis::with('client')->findOrFail($id);
     return view('pdf.anamnese', compact('record'));
