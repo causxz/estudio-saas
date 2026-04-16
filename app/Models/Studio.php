@@ -11,15 +11,21 @@ class Studio extends Model
 {
     use HasFactory;
 
+    // Apenas campos que os utilizadores podem preencher diretamente
     protected $fillable = [
         'name',
         'slug',
         'has_commissions',
-        'asaas_customer_id', 
-        'subscription_id',   
-        'plan_type',         
-        'status',            
-        'expires_at',        
+    ];
+
+    // Proteção extra: impede explicitamente a atribuição em massa destes campos sensíveis
+    protected $guarded = [
+        'id',
+        'asaas_customer_id',
+        'subscription_id',
+        'plan_type',
+        'status',
+        'expires_at'
     ];
 
     protected $casts = [
@@ -35,27 +41,27 @@ class Studio extends Model
     }
 
     // As gavetas do Estúdio (Relações HasMany)
-    public function clients(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function clients(): HasMany
     {
         return $this->hasMany(Client::class);
     }
     
-    public function services(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function services(): HasMany
     {
         return $this->hasMany(Service::class);
     }
 
-    public function appointments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
     }
 
-    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
-    public function anamneses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function anamneses(): HasMany
     {
         return $this->hasMany(Anamnesis::class);
     }
@@ -64,6 +70,4 @@ class Studio extends Model
     {
         return $this->hasMany(Professional::class);
     }
-
-    
 }

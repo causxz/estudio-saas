@@ -53,27 +53,33 @@ class Transaction extends Model
                     return; // Aborta a automação se a chave estiver desligada
                 }
 
-                // 2. Busca o agendamento completo com o serviço
-                $appointment = \App\Models\Appointment::with('service')->find($transaction->appointment_id);
+                // 2. Busca o agendamento completo com o serviço, GARANTINDO O TENANT
+                $appointment = \App\Models\Appointment::where('studio_id', $transaction->studio_id)
+                    ->with('service')
+                    ->find($transaction->appointment_id);
 
-                // 3. AQUI ESTÁ A CORREÇÃO: Mudamos para commission_percentage > 0
+                // 3. Verifica se o agendamento tem profissional, serviço e se o serviço tem comissão configurada
                 if ($appointment && $appointment->professional_id && $appointment->service && $appointment->service->commission_percentage > 0) {
 
-                    // 4. Trava de segurança contra duplicidade
+                    // Trava de segurança contra duplicidade
                     $jaExiste = \App\Models\Transaction::where('appointment_id', $transaction->appointment_id)
                         ->where('type', 'saida')
                         ->where('professional_id', $appointment->professional_id)
                         ->exists();
 
                     if (!$jaExiste) {
-                        // 5. Cria a saída automaticamente no financeiro
+                        // PREVENÇÃO DE ERRO 500: Garante que os valores são tratados como números 
+                        // mesmo que o serviço retorne null devido a soft deletes corrompidos
+                        $price = (float) ($appointment->service->price ?? 0);
+                        $percentage = (float) ($appointment->service->commission_percentage ?? 0);
+
+                        // 4. Cria a saída automaticamente no financeiro
                         \App\Models\Transaction::create([
                             'studio_id' => $transaction->studio_id,
                             'appointment_id' => $transaction->appointment_id,
                             'professional_id' => $appointment->professional_id,
                             'type' => 'saida',
-                            // AQUI ESTÁ A CORREÇÃO DA MATEMÁTICA:
-                            'amount' => ($appointment->service->price * $appointment->service->commission_percentage) / 100,
+                            'amount' => ($price * $percentage) / 100,
                             'description' => 'Comissão automática - ' . $appointment->service->name,
                             'transaction_date' => $transaction->transaction_date,
                             'payment_method' => null,
