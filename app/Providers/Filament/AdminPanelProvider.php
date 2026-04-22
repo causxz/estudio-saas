@@ -18,6 +18,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Tenancy\EditStudioProfile;
 use Filament\Navigation\MenuItem;
+use Filament\Support\Enums\MaxWidth; 
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -32,36 +33,66 @@ class AdminPanelProvider extends PanelProvider
                 'logout' => MenuItem::make()
                     ->label('Sair da Agenda')
                     ->url(fn(): string => route('sair.agora')),
-            ])  
+            ])
             ->registration() // Permite criar conta
             ->authGuard('web')
-            
-            // --- CONFIGURAÇÃO DE APARÊNCIA ---
+
+            // --- CONFIGURAÇÃO DE APARÊNCIA (Padrão Elite) ---
             ->colors([
                 'primary' => [
                     50 => '#fdf8f6',
                     100 => '#f2e8e5',
                     200 => '#eaddd7',
                     300 => '#e0cec7',
-                    400 => '#d2bab0',
-                    500 => '#a18072', // Destaque: Botões, links, ícones ativos
-                    600 => '#977669', // Hover dos botões
-                    700 => '#846358',
-                    800 => '#43302b',
-                    900 => '#271c19', // Fundo no Modo Escuro
+                    400 => '#c28e64', 
+                    500 => '#844d36', 
+                    600 => '#6b3728', 
+                    700 => '#4a261c',
+                    800 => '#3a2318',
+                    900 => '#271c19',
                     950 => '#1c1412',
                 ],
-                
-                'gray' => Color::Stone, 
-                // Cores de status ajustadas para tons mais elegantes
-                'danger' => Color::Rose, 
+                'gray' => Color::Stone,
+                'danger' => Color::Rose,
                 'info' => Color::Blue,
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
             ])
-            // TIPOGRAFIA
-            ->font('Inter')
             
+            // TIPOGRAFIA EXATA DA SUA LANDING PAGE
+            ->font('DM Sans')
+
+            // LAYOUT MODERNO
+            ->maxContentWidth('full') // Usa a largura total para caber a agenda melhor
+
+            // --- CSS INJETADO (Bordas e Blur) SEM PRECISAR DE VITE BUILD ---
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => '
+                    <style>
+                        /* Arredondamento Global e Estilo de Elite */
+                        :root {
+                            --fi-border-radius-xl: 1.5rem; 
+                            --fi-border-radius-lg: 1.25rem;   
+                            --fi-border-radius-md: 0.75rem; 
+                        }
+                        
+                        /* Navbar flutuante com blur */
+                        .fi-topbar {
+                            background: rgba(253, 251, 247, 0.85) !important;
+                            backdrop-filter: blur(12px) !important;
+                            -webkit-backdrop-filter: blur(12px) !important;
+                            border-bottom: 1px solid rgba(58, 35, 24, 0.05) !important;
+                        }
+                        
+                        .dark .fi-topbar {
+                            background: rgba(24, 24, 27, 0.85) !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+                        }
+                    </style>
+                '
+            )
+
             // --- CONFIGURAÇÃO DO SAAS (TENANCY) ---
             ->tenant(\App\Models\Studio::class)
             ->tenantProfile(EditStudioProfile::class)
