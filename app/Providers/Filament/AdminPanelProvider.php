@@ -18,7 +18,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Tenancy\EditStudioProfile;
 use Filament\Navigation\MenuItem;
-use Filament\Support\Enums\MaxWidth; 
+
 
 class AdminPanelProvider extends PanelProvider
 {
