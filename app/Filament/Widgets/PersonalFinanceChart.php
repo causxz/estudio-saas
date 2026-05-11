@@ -2,42 +2,61 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\PersonalTransaction;
+use Filament\Widgets\ChartWidget;
 
 class PersonalFinanceChart extends ChartWidget
 {
-    protected ?string $heading = 'Personal Finance Chart';
+    // Título do widget
+    protected ?string $heading = 'Gastos por Categoria (Mês Atual)';
+    
+    // 🔒 Segurança e Tenant (Este continua estático, pois é uma regra arquitetural)
+    protected static bool $isScopedToTenant = false;
+
+    // 📏 Fixa a altura para não distorcer o visual (REMOVIDO O 'static' DAQUI 👇)
+    protected ?string $maxHeight = '300px';
 
     protected function getData(): array
     {
         $userId = auth()->id();
 
-        // Lógica simples para pegar gastos vs entradas dos últimos 6 meses
+        // Puxa gastos agrupados por categoria
         $data = PersonalTransaction::where('user_id', $userId)
-            ->selectRaw("type, SUM(amount) as total, MONTH(date) as month")
-            ->groupBy('type', 'month')
-            ->get();
+            ->where('type', 'expense')
+            ->whereMonth('date', now()->month)
+            ->selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category')
+            ->toArray();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Entradas',
-                    'data' => $data->where('type', 'income')->pluck('total')->toArray(),
-                    'borderColor' => '#844D36', // Seu tom Terra
-                ],
-                [
-                    'label' => 'Gastos',
-                    'data' => $data->where('type', 'expense')->pluck('total')->toArray(),
-                    'borderColor' => '#C28E64', // Seu tom Bronze
+                    'data' => array_values($data),
+                    'backgroundColor' => ['#844D36', '#C28E64', '#6B3728', '#452B1F', '#E8C9A8', '#F7EDE0', '#9CA3AF'],
+                    'borderWidth' => 0,
                 ],
             ],
-            'labels' => ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            'labels' => array_keys($data),
         ];
     }
 
     protected function getType(): string
     {
-        return 'line';
+        return 'doughnut'; // Estilo pizza/rosca
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            // Mantém a proporção e impede que o gráfico tente usar 100% da tela
+            'maintainAspectRatio' => false, 
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom', // Legendas embaixo para ganhar espaço
+                ],
+            ],
+            'cutout' => '65%', // Afina a rosca para ficar mais elegante
+        ];
     }
 }

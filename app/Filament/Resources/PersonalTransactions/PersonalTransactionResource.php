@@ -11,7 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 
-// 👇 IMPORTAÇÕES CORRIGIDAS PARA O PADRÃO SCHEMA 👇
+// IMPORTAÇÕES CORRIGIDAS PARA O PADRÃO SCHEMA
 use Filament\Schemas\Schema; 
 use Filament\Schemas\Components\Section;
 

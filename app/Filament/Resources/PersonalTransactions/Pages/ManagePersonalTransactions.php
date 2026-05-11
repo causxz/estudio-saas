@@ -3,7 +3,8 @@
 namespace App\Filament\Resources\PersonalTransactions\Pages;
 
 use App\Filament\Resources\PersonalTransactions\PersonalTransactionResource;
-use Filament\Actions\CreateAction;
+use App\Filament\Widgets\PersonalFinanceChart;
+use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManagePersonalTransactions extends ManageRecords
@@ -13,7 +14,14 @@ class ManagePersonalTransactions extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            Actions\CreateAction::make()->label('Nova Movimentação'),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PersonalFinanceChart::class,
         ];
     }
 }
