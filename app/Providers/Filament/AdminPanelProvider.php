@@ -59,7 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
             ])
             
-            // TIPOGRAFIA EXATA DA SUA LANDING PAGE
+            // TIPOGRAFIA 
             ->font('DM Sans')
 
             // LAYOUT MODERNO
@@ -120,5 +120,6 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+
     }
 }

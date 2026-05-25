@@ -10,10 +10,13 @@ class PersonalFinanceChart extends ChartWidget
     // Título do widget
     protected ?string $heading = 'Gastos por Categoria (Mês Atual)';
     
-    // 🔒 Segurança e Tenant (Este continua estático, pois é uma regra arquitetural)
+    //  Segurança e Tenant
     protected static bool $isScopedToTenant = false;
 
-    // 📏 Fixa a altura para não distorcer o visual (REMOVIDO O 'static' DAQUI 👇)
+    // IMPEDE QUE O GRÁFICO APAREÇA NA DASHBOARD PRINCIPAL 
+    protected static bool $isDiscovered = false;
+
+    // Fixa a altura para não distorcer o visual
     protected ?string $maxHeight = '300px';
 
     protected function getData(): array
