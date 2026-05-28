@@ -38,10 +38,9 @@ Route::get('/register', function () {
     return redirect()->route('filament.admin.auth.register');
 })->name('register');
 
-// 1. Força qualquer requisição perdida de 'login' a voltar para a Home
 Route::get('/redirecionar-login', function () {
     return redirect('/');
-})->name('login');
+});
 
 // 2. O nosso Logout Exclusivo (Bypass do Filament)
 Route::get('/sair-agora', function (\Illuminate\Http\Request $request) {
