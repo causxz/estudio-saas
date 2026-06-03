@@ -95,15 +95,28 @@ class AdminPanelProvider extends PanelProvider
                             background: linear-gradient(135deg, #c28e64 0%, #844d36 100%);
                             color: white;
                             font-weight: bold;
-                            padding: 0.4rem 1rem;
+                            padding: 0.4rem 0.6rem;
                             border-radius: 9999px;
                             display: flex;
                             align-items: center;
-                            gap: 0.5rem;
+                            gap: 0.4rem;
                             font-size: 0.875rem;
                             transition: all 0.2s ease-in-out;
                             box-shadow: 0 4px 6px -1px rgba(194, 142, 100, 0.3);
                             text-decoration: none;
+                            margin-right: 0.5rem;
+                        }
+                        .btn-upgrade-text {
+                            display: none;
+                        }
+                        @media (min-width: 640px) {
+                            .btn-upgrade-header {
+                                padding: 0.4rem 1rem;
+                                margin-right: 1rem;
+                            }
+                            .btn-upgrade-text {
+                                display: inline;
+                            }
                         }
                         .btn-upgrade-header:hover {
                             transform: translateY(-1px);
@@ -115,11 +128,11 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn (): string => \Filament\Facades\Filament::getTenant() && \Filament\Facades\Filament::getTenant()->plan_type !== 'plus'
-                    ? '<a href="/admin/meu-plano" class="btn-upgrade-header" style="margin-right: 1rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1rem; height: 1rem;">
+                    ? '<a href="/admin/meu-plano" class="btn-upgrade-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.1rem; height: 1.1rem;">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                         </svg>
-                        Upgrade
+                        <span class="btn-upgrade-text">Upgrade</span>
                       </a>'
                     : ''
             )

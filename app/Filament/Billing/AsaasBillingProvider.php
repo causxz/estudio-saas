@@ -11,7 +11,7 @@ class AsaasBillingProvider implements BillingProvider
     public function getRouteAction(): string | Closure | array
     {
         return function (): RedirectResponse {
-            return redirect()->route('filament.admin.tenant.pages.meu-plano');
+            return redirect(\App\Filament\Pages\MeuPlano::getUrl());
         };
     }
 
