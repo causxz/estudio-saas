@@ -87,6 +87,41 @@
             font-size: 10px; 
             color: #aaa; 
         }
+
+        /* Responsividade para Telas Menores (Celulares) */
+        @media (max-width: 600px) {
+            body {
+                font-size: 14px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            table, tr, td {
+                display: block;
+                width: 100%;
+            }
+            .label, .value {
+                width: 100%;
+                display: block;
+            }
+            .label {
+                padding-bottom: 2px;
+                border-bottom: none;
+            }
+            .value {
+                padding-top: 0;
+                margin-bottom: 15px;
+            }
+            .checkbox-list td {
+                width: 100%;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+            }
+            .signature-line {
+                width: 100%;
+                max-width: 350px;
+            }
+        }
     </style>
 </head>
 <body>

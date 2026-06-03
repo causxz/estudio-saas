@@ -10,6 +10,12 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
 
 // IMPORTAÇÕES CORRIGIDAS PARA O PADRÃO SCHEMA
 use Filament\Schemas\Schema; 
@@ -151,14 +157,19 @@ class PersonalTransactionResource extends Resource
                         'income' => 'Apenas Entradas',
                         'expense' => 'Apenas Saídas',
                     ])->native(false),
+                TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('date', 'desc'); // Mostra os mais recentes primeiro
@@ -167,7 +178,11 @@ class PersonalTransactionResource extends Resource
     // 🔒 SEGURANÇA MÁXIMA: Garante que uma Lash nunca veja os gastos da outra
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        return parent::getEloquentQuery()
+            ->where('user_id', auth()->id())
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 
     public static function getPages(): array

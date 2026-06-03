@@ -18,6 +18,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Tenancy\EditStudioProfile;
 use Filament\Navigation\MenuItem;
+use App\Filament\Billing\AsaasBillingProvider;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -89,13 +90,48 @@ class AdminPanelProvider extends PanelProvider
                             background: rgba(24, 24, 27, 0.85) !important;
                             border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
                         }
+
+                        .btn-upgrade-header {
+                            background: linear-gradient(135deg, #c28e64 0%, #844d36 100%);
+                            color: white;
+                            font-weight: bold;
+                            padding: 0.4rem 1rem;
+                            border-radius: 9999px;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            font-size: 0.875rem;
+                            transition: all 0.2s ease-in-out;
+                            box-shadow: 0 4px 6px -1px rgba(194, 142, 100, 0.3);
+                            text-decoration: none;
+                        }
+                        .btn-upgrade-header:hover {
+                            transform: translateY(-1px);
+                            box-shadow: 0 6px 10px -1px rgba(194, 142, 100, 0.4);
+                        }
                     </style>
                 '
+            )
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                fn (): string => \Filament\Facades\Filament::getTenant() && \Filament\Facades\Filament::getTenant()->plan_type !== 'plus'
+                    ? '<a href="/admin/meu-plano" class="btn-upgrade-header" style="margin-right: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1rem; height: 1rem;">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                        Upgrade
+                      </a>'
+                    : ''
             )
 
             // --- CONFIGURAÇÃO DO SAAS (TENANCY) ---
             ->tenant(\App\Models\Studio::class)
-            ->tenantProfile(EditStudioProfile::class)
+            ->tenantRegistration(\App\Filament\Pages\Tenancy\RegisterStudio::class)
+            ->tenantMenuItems([
+                'register' => MenuItem::make()->icon('heroicon-o-cog-6-tooth'),
+            ])
+            ->tenantBillingProvider(new AsaasBillingProvider())
+            ->tenantMiddleware([\App\Http\Middleware\ApplyTenantScopes::class], isPersistent: true)
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

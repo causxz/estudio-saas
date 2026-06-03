@@ -21,6 +21,7 @@ class ListProfessionals extends ListRecords
                 ->label('Configurar Comissões')
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('warning') // Fica amarelo para chamar atenção
+                ->visible(fn () => Filament::getTenant()->plan_type === 'plus')
                 ->form([
                     Toggle::make('has_commissions')
                         ->label('Sistema de Comissões')
@@ -42,7 +43,18 @@ class ListProfessionals extends ListRecords
             CreateAction::make()
                 ->modalWidth('md')
                 ->label('Novo Profissional')
-                ->icon('heroicon-o-plus'),
+                ->icon('heroicon-o-plus')
+                ->before(function (CreateAction $action) {
+                    $studio = Filament::getTenant();
+                    if ($studio->plan_type !== 'plus' && $studio->professionals()->count() >= 1) {
+                        \Filament\Notifications\Notification::make()
+                            ->danger()
+                            ->title('Limite Atingido')
+                            ->body('Faça upgrade para o plano Plus para adicionar mais profissionais.')
+                            ->send();
+                        $action->halt();
+                    }
+                }),
         ];
     }
 }

@@ -18,9 +18,13 @@ class DispararLembretesAgendamento extends Command
         $inicioDaHora = Carbon::now()->addHours(24)->startOfHour();
         $fimDaHora = Carbon::now()->addHours(24)->endOfHour();
 
-        $agendamentos = Appointment::with(['client', 'service', 'location'])
+        $agendamentos = Appointment::with(['client', 'service', 'location', 'studio'])
             ->where('status', 'agendado')
             ->whereBetween('starts_at', [$inicioDaHora, $fimDaHora])
+            ->whereHas('studio', function ($query) {
+                $query->where('plan_type', 'plus')
+                      ->where('status', 'active');
+            })
             ->get();
 
         if ($agendamentos->isEmpty()) {
@@ -59,11 +63,13 @@ class DispararLembretesAgendamento extends Command
         $numero = preg_replace('/[^0-9]/', '', $cliente->whatsapp);
         if (strlen($numero) <= 11) $numero = '55' . $numero;
 
+        $apiUrl = env('WHATSAPP_API_URL', 'http://localhost:8080/message/sendText/estudio');
+
         // Disparo com o Payload Blindado
         $response = Http::withHeaders([
             'apikey' => 'ChaveSecretaEstudio123',
             'Content-Type' => 'application/json'
-        ])->post("http://localhost:8080/message/sendText/estudio", [
+        ])->post($apiUrl, [
             'number' => $numero,
             'text' => $msg, // Formato v2
             'textMessage' => [

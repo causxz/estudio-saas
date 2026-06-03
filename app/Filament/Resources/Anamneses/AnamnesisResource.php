@@ -24,7 +24,15 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Builder;
 
 use BackedEnum;
 
@@ -51,7 +59,7 @@ class AnamnesisResource extends Resource
                     ]),
 
                 Section::make('Saúde e Alergias')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->schema([
                         Toggle::make('has_allergy')->label('Possui Alergias?'),
                         Toggle::make('eye_disease')->label('Problemas Oculares?'),
@@ -62,7 +70,7 @@ class AnamnesisResource extends Resource
                     ]),
 
                 Section::make('Procedimento Realizado')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->schema([
                         TextInput::make('preferred_style')
                             ->label('Estilo (Ex: Fio a fio, Volume Russo, etc.)'),
@@ -100,8 +108,14 @@ class AnamnesisResource extends Resource
                     ->label('Data da Ficha')
                     ->date('d/m/Y'),
             ])
+            ->filters([
+                TrashedFilter::make(),
+            ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
 
                 // NOVO BOTÃO: Abrir Ficha Preenchida na Tela
                 Action::make('imprimir')
@@ -111,9 +125,11 @@ class AnamnesisResource extends Resource
                     ->url(fn(Anamnesis $record) => route('anamnese.imprimir', $record->id))
                     ->openUrlInNewTab(), // Abre numa aba nova para não fechar o sistema
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -125,5 +141,13 @@ class AnamnesisResource extends Resource
             'create' => CreateAnamnesis::route('/create'),
             'edit' => EditAnamnesis::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

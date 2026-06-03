@@ -34,16 +34,17 @@ class RegisterStudio extends RegisterTenant
                 Select::make('plan_type')
                     ->label('Escolha seu Plano')
                     ->options([
-                        'iniciante' => 'Iniciante (R$ 29/mês)',
-                        'professional' => 'Professional (R$ 79/mês)',
-                        'business' => 'Elite Business - Com IA (R$ 149/mês)',
+                        'free' => 'Gratuito (R$ 0/mês)',
+                        'plus' => 'Plus (R$ 79,99/mês)',
                     ])
                     ->required()
-                    ->default('professional'),
+                    ->default('free')
+                    ->live(),
 
                 Toggle::make('has_commissions')
                     ->label('Ativar Sistema de Comissões')
-                    ->helperText('Ligue se o seu estúdio possui profissionais que ganham por comissão.')
+                    ->helperText(fn ($get) => $get('plan_type') === 'free' ? 'Indisponível no plano Gratuito.' : 'Ligue se o seu estúdio possui profissionais que ganham por comissão.')
+                    ->disabled(fn ($get) => $get('plan_type') === 'free')
                     ->default(false),
             ]);
     }
@@ -76,25 +77,27 @@ class RegisterStudio extends RegisterTenant
                 $customerId = $response->json('id');
                 $data['asaas_customer_id'] = $customerId;
 
-                $valores = ['iniciante' => 29.00, 'professional' => 79.00, 'business' => 149.00];
-                $valorPlano = $valores[$data['plan_type']] ?? 79.00;
+                $valores = ['free' => 0.00, 'plus' => 79.99];
+                $valorPlano = $valores[$data['plan_type']] ?? 0.00;
 
-                // Cria a Assinatura (Mensalidade) com 7 DIAS GRÁTIS
-                $subResponse = Http::withHeaders([
-                    'access_token' => config('services.asaas.api_key'),
-                ])->post('https://sandbox.asaas.com/api/v3/subscriptions', [
-                    'customer' => $customerId,
-                    'billingType' => 'PIX',
-                    'value' => $valorPlano,
-                    'nextDueDate' => now()->addDays(7)->format('Y-m-d'), // Vence em 7 dias
-                    'cycle' => 'MONTHLY',
-                    'description' => "Mensalidade Agenda Lash - Plano " . ucfirst($data['plan_type'])
-                ]);
+                if ($valorPlano > 0) {
+                    // Cria a Assinatura (Mensalidade) com 7 DIAS GRÁTIS
+                    $subResponse = Http::withHeaders([
+                        'access_token' => config('services.asaas.api_key'),
+                    ])->post('https://sandbox.asaas.com/api/v3/subscriptions', [
+                        'customer' => $customerId,
+                        'billingType' => 'PIX',
+                        'value' => $valorPlano,
+                        'nextDueDate' => now()->addDays(7)->format('Y-m-d'), // Vence em 7 dias
+                        'cycle' => 'MONTHLY',
+                        'description' => "Mensalidade Agenda Lash - Plano " . ucfirst($data['plan_type'])
+                    ]);
 
-                if ($subResponse->successful()) {
-                    $data['subscription_id'] = $subResponse->json('id');
-                } else {
-                    Log::error('Erro Asaas (Assinatura): ' . $subResponse->body());
+                    if ($subResponse->successful()) {
+                        $data['subscription_id'] = $subResponse->json('id');
+                    } else {
+                        Log::error('Erro Asaas (Assinatura): ' . $subResponse->body());
+                    }
                 }
             } else {
                 Log::error('Erro Asaas (Cliente): ' . $response->body());
@@ -117,6 +120,10 @@ class RegisterStudio extends RegisterTenant
             $studio->professionals()->create([
                 'name' => $user->name,
             ]);
+
+            // Assign the "admin" role for this specific studio
+            setPermissionsTeamId($studio->id);
+            $user->assignRole('admin');
 
             return $studio;
         });

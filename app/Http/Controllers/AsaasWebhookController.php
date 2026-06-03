@@ -59,6 +59,7 @@ class AsaasWebhookController extends Controller
             case 'PAYMENT_CONFIRMED':
                 $studio->update([
                     'status' => 'active',
+                    'plan_type' => 'plus', // Libera os limites do plano
                     'expires_at' => now()->addMonth(), // Dá 1 mês de acesso
                 ]);
                 break;

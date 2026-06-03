@@ -21,8 +21,13 @@ class ConsultorMarketing extends Page implements HasForms
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
     protected static ?string $navigationLabel = 'Consultor IA';
-    protected static ?string $title = 'Consultor de Marketing (Gemini)';
+    protected static ?string $title = 'Consultor de Marketing (OpenAI)';
     protected static ?int $navigationSort = 3;
+    
+    public static function canAccess(): bool
+    {
+        return \Filament\Facades\Filament::getTenant()->plan_type === 'plus';
+    }
     
     protected string $view = 'filament.pages.consultor-marketing';
 
@@ -82,23 +87,25 @@ class ConsultorMarketing extends Page implements HasForms
             $prompt .= "Siga esta instrução exata para criar o conteúdo: " . $promptCustomizado . "\n\nMe dê apenas o texto final pronto para uso, sem introduções de 'Aqui está...'.";
         }
 
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = env('OPENAI_API_KEY');
         if (empty($apiKey)) {
             $this->respostaIa = "Erro: Chave API não encontrada.";
             return;
         }
 
-        // Chamada ao Gemini 2.5
-        $response = \Illuminate\Support\Facades\Http::withoutVerifying()
-            ->withHeaders(['Content-Type' => 'application/json', 'x-goog-api-key' => trim($apiKey)])
-            ->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', [
-                'contents' => [['parts' => [['text' => $prompt]]]]
+        try {
+            $client = \OpenAI::client($apiKey);
+            $response = $client->chat()->create([
+                'model' => 'gpt-4o',
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Você é um especialista em marketing experiente no mercado de Estética, Beleza, e Extensão de Cílios. Seu objetivo é criar respostas prontas, engajadoras e humanizadas.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
             ]);
 
-        if ($response->successful()) {
-            $this->respostaIa = $response->json('candidates.0.content.parts.0.text');
-        } else {
-            $this->respostaIa = "⚠️ ERRO DO GOOGLE: " . ($response->json('error.message') ?? $response->body());
+            $this->respostaIa = $response->choices[0]->message->content;
+        } catch (\Exception $e) {
+            $this->respostaIa = "⚠️ ERRO DA OPENAI: " . $e->getMessage();
         }
     }
 

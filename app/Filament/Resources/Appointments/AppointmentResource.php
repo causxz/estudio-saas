@@ -18,6 +18,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\Indicator;
 
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Facades\Filament;
 use App\Filament\Resources\Appointments\Schemas\AppointmentForm;
@@ -51,6 +60,7 @@ class AppointmentResource extends Resource
                     ->sortable()
                     ->badge() 
                     ->color('gray')
+                    ->visibleFrom('md')
                     ->visible(fn() => Filament::getTenant() && Filament::getTenant()->has_commissions),
 
                 TextColumn::make('starts_at')->label('Início')->dateTime('d/m/Y H:i')->sortable(),
@@ -105,10 +115,21 @@ class AppointmentResource extends Resource
                                 ->removeField('agendado_ate');
                         }
                         return $indicators;
-                    })
+                    }),
+                TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                ]),
             ])
             ->defaultSort('starts_at', 'asc');
     }
@@ -120,5 +141,13 @@ class AppointmentResource extends Resource
             'create' => Pages\CreateAppointment::route('/create'),
             'edit' => Pages\EditAppointment::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

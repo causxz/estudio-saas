@@ -6,6 +6,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -29,7 +30,8 @@ class ServicesTable
                 TextColumn::make('duration_minutes')
                     ->label('Duração (min)')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('sm'),
                 TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime('d/m/Y H:i')
@@ -47,11 +49,11 @@ class ServicesTable
             ])
             ->recordActions([
                 EditAction::make(),
-                // Botões individuais na linha de cada serviço
                 DeleteAction::make(),
                 RestoreAction::make(),
+                ForceDeleteAction::make(),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     // Botões de ação em massa (ao selecionar as caixinhas)
                     DeleteBulkAction::make(),

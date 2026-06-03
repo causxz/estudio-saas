@@ -13,7 +13,14 @@ use App\Filament\Resources\Professionals\Pages;
 use Filament\Support\Icons\Heroicon;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProfessionalResource extends Resource
 {
@@ -58,6 +65,14 @@ class ProfessionalResource extends Resource
                 EditAction::make()->modalWidth('md'),
                 DeleteAction::make(),
                 RestoreAction::make(),
+                ForceDeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                ]),
             ]);
     }
 
@@ -66,5 +81,13 @@ class ProfessionalResource extends Resource
         return [
             'index' => Pages\ListProfessionals::route('/'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

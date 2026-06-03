@@ -590,7 +590,7 @@
             </p>
 
             <div class="hero-actions fade-up" style="animation-delay:0.3s">
-                <a href="{{ route('register') }}" class="btn-primary">
+                <a href="{{ route('filament.admin.auth.register') }}" class="btn-primary">
                     Começar grátis
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
@@ -611,25 +611,14 @@
         <div class="hero-right">
             <div class="login-card fade-left" id="login-form" style="animation-delay:0.2s">
                 <h2>Acessar sistema</h2>
+                <p style="color: rgba(253,251,247,0.7); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+                    Faça login no seu painel administrativo para gerir a sua agenda, finanças e profissionais.
+                </p>
 
-                <form method="POST" action="{{ route('processar.login') }}">
-                    @csrf
-
-                    @error('email')
-                        <div class="error-box">{{ $message }}</div>
-                    @enderror
-
-                    <label class="field-label">E-mail profissional</label>
-                    <input type="email" name="email" class="field-input" placeholder="lash@seuestudio.com" required>
-
-                    <label class="field-label">Senha</label>
-                    <input type="password" name="password" class="field-input" placeholder="••••••••" required>
-
-                    <button type="submit" class="btn-login">Entrar na agenda</button>
-                </form>
+                <a href="{{ route('filament.admin.auth.login') }}" class="btn-login" style="display: block; text-align: center; text-decoration: none;">Ir para a página de Login</a>
 
                 <p class="register-link">
-                    Não tem conta? <a href="{{ route('register') }}">Criar gratuitamente</a>
+                    Não tem conta? <a href="{{ route('filament.admin.auth.register') }}">Criar gratuitamente</a>
                 </p>
             </div>
         </div>
@@ -794,7 +783,7 @@
                 </ul>
 
                 <div class="plan-btn-wrap">
-                    <a href="{{ route('register') }}" class="plan-btn">Começar gratuitamente</a>
+                    <a href="{{ route('filament.admin.auth.register') }}" class="plan-btn">Começar gratuitamente</a>
                 </div>
             </div>
 

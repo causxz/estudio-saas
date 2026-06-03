@@ -27,6 +27,13 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
 
 
 class TransactionResource extends Resource
@@ -53,7 +60,7 @@ class TransactionResource extends Resource
         return $schema
             ->components([
                 Section::make('Detalhes da Movimentação')
-                    ->columns(2)
+                    ->columns(['default' => 1, 'sm' => 2])
                     ->schema([
                         Select::make('type')
                             ->label('Tipo de Movimentação')
@@ -197,11 +204,13 @@ class TransactionResource extends Resource
                 TextColumn::make('professional.name')
                     ->label('Profissional')
                     ->searchable()
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->visibleFrom('md'),
 
                 TextColumn::make('description')
                     ->label('Descrição')
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
 
                 TextColumn::make('amount')
                     ->label('Valor')
@@ -265,13 +274,19 @@ class TransactionResource extends Resource
                             default => $query,
                         };
                     }),
+                TrashedFilter::make(),
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('transaction_date', 'desc');
@@ -284,5 +299,13 @@ class TransactionResource extends Resource
             'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

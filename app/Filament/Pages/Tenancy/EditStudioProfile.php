@@ -25,6 +25,8 @@ class EditStudioProfile extends EditTenantProfile
 
                 Toggle::make('has_commissions')
                     ->label('Ativar Sistema de Comissões')
+                    ->helperText(fn () => \Filament\Facades\Filament::getTenant()->plan_type === 'free' ? 'Disponível apenas no plano Plus.' : 'Ligue se o seu estúdio possui profissionais que ganham por comissão.')
+                    ->disabled(fn () => \Filament\Facades\Filament::getTenant()->plan_type === 'free')
                     ->default(false),
             ]);
     }
